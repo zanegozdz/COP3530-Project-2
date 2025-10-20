@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(Project1)
+project(Project2)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -20,7 +20,9 @@ FetchContent_MakeAvailable(Catch2)
 include_directories(src)
 
 add_executable(Main
-        src/main.cpp # your main file
+        src/main.cpp
+        src/TuneTree.cpp
+        src/TuneTree.h # your main file
         # add your own header files below - should be automatically added in CLion
         # example (can also separate with newlines):
         # src/AVL.h src/AVL.cpp
@@ -32,6 +34,8 @@ add_executable(Tests
         # add your own header files below - should be automatically added in CLion
         # example (can also separate with newlines):
         # src/AVL.h src/AVL.cpp
+        src/TuneTree.cpp
+        src/TuneTree.h
         )
         
 target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain) #link catch to test.cpp file
