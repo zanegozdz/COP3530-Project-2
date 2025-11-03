@@ -21,8 +21,6 @@ include_directories(src)
 
 add_executable(Main
         src/main.cpp
-        src/TuneTree.cpp
-        src/TuneTree.h
         src/B+Tree.h
         src/B+Tree.cpp
         src/Song.h
@@ -49,6 +47,6 @@ target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain) #link catch to test.
 # the name here must match that of your testing executable (the one that has test.cpp)
 
 # comment everything below out if you are using CLion
-include(CTest)
-include(Catch)
-catch_discover_tests(Tests) # must be named the same as your test executable
+#include(CTest)
+#include(Catch)
+#catch_discover_tests(Tests) # must be named the same as your test executable
