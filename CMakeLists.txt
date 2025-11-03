@@ -21,6 +21,12 @@ include_directories(src)
 
 add_executable(Main
         src/main.cpp
+        src/TuneTree.cpp
+        src/TuneTree.h
+        src/B+Tree.h
+        src/B+Tree.cpp
+        src/Song.h
+        src/Song.cpp # your main file
         src/MusicLibrary.cpp
         src/MusicLibary.h
         # your main file
