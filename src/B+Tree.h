@@ -32,7 +32,7 @@ public:
 };
 
 //B+ tree
-template<typename T>
+template<typename Key, typename Value>
 class BPlusTree {
 private:
     BPlusNode<T>* root;
@@ -50,10 +50,11 @@ public:
     ~BPlusTree();
 
     //search
-    void insert(int key, T* value);
+    void insert(int key, Value* value);
     vector<T*> search(int key);
     vector<T*> rangeSearch(int minKey, int maxKey);
     void print();
+
 };
 
 #endif //PROJECT2_B_TREE_H
