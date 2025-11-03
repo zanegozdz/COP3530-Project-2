@@ -124,3 +124,10 @@ void BPlusTree<T>::insert(int key, T *value) {
     }
     insertNonFull(root, key, value);
 }
+
+template<typename T>
+vector<T*> BPlusTree<T>::search(int key) {
+    vector<T*> results;
+    searchNode(root, key, results);
+    return results;
+}
