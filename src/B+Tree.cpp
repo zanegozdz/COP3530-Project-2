@@ -95,7 +95,20 @@ void BPlusTree<T>::insertNonFull(BPlusNode<T> *node, int key, T *value) {
 
 template<typename T>
 void BPlusTree<T>::searchNode(BPlusNode<T> *node, int key, vector<T *> &results) {
-
+    if (node->isLeaf) {
+        for (size_t i = 0; i < node->keys.size(); i++) {
+            if (node->keys[i] == key) {
+                results.push_back(node->values[i]);
+            }
+        }
+    }
+    else {
+        int i = 0;
+        while (i < node->keys.size() && key >= node->keys[i]) {
+            i++;
+        }
+        searchNode(node->children[i], key, results);
+    }
 }
 
 template<typename T>

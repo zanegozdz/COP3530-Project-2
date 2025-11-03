@@ -517,3 +517,324 @@ TEST_CASE("splitChild boundary cases", "[BPlusTree][splitChild][boundary]") {
         delete parent;
     }
 }
+
+TEST_CASE("searchNode functionality", "[BPlusTree][searchNode]") {
+    TestBPlusTree tree(4);
+
+    SECTION("search in empty leaf node") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        std::vector<TestData*> results;
+
+        tree.searchNode(leaf, 10, results);
+
+        REQUIRE(results.empty());
+        delete leaf;
+    }
+
+    SECTION("search in leaf node with single key - found") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        leaf->keys = {15};
+        leaf->values = {new TestData(15, "data15")};
+        std::vector<TestData*> results;
+
+        tree.searchNode(leaf, 15, results);
+
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 15);
+        REQUIRE(results[0]->name == "data15");
+        delete leaf;
+    }
+
+    SECTION("search in leaf node with single key - not found") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        leaf->keys = {15};
+        leaf->values = {new TestData(15, "data15")};
+        std::vector<TestData*> results;
+
+        tree.searchNode(leaf, 20, results);
+
+        REQUIRE(results.empty());
+        delete leaf;
+    }
+
+    SECTION("search in leaf node with multiple keys - found") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        leaf->keys = {10, 20, 30, 40};
+        leaf->values = {
+            new TestData(10, "data10"),
+            new TestData(20, "data20"),
+            new TestData(30, "data30"),
+            new TestData(40, "data40")
+        };
+        std::vector<TestData*> results;
+
+        tree.searchNode(leaf, 20, results);
+
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 20);
+        REQUIRE(results[0]->name == "data20");
+        delete leaf;
+    }
+
+    SECTION("search in leaf node with duplicate keys") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        leaf->keys = {10, 10, 20, 30};
+        leaf->values = {
+            new TestData(10, "data10a"),
+            new TestData(10, "data10b"),
+            new TestData(20, "data20"),
+            new TestData(30, "data30")
+        };
+        std::vector<TestData*> results;
+
+        tree.searchNode(leaf, 10, results);
+
+        REQUIRE(results.size() == 2);
+        REQUIRE(results[0]->id == 10);
+        REQUIRE(results[0]->name == "data10a");
+        REQUIRE(results[1]->id == 10);
+        REQUIRE(results[1]->name == "data10b");
+        delete leaf;
+    }
+
+    SECTION("search in internal node - key less than all internal keys") {
+        TestBPlusNode* internal = new TestBPlusNode(4, false);
+        internal->keys = {20, 40, 60};
+
+        // Create leaf child
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        leaf1->keys = {5, 10, 15};
+        leaf1->values = {
+            new TestData(5, "data5"),
+            new TestData(10, "data10"),
+            new TestData(15, "data15")
+        };
+
+        internal->children = {leaf1, nullptr, nullptr, nullptr};
+
+        std::vector<TestData*> results;
+
+        // Search for key 10 (less than first internal key 20)
+        tree.searchNode(internal, 10, results);
+
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 10);
+
+        delete internal;
+    }
+
+    SECTION("search in internal node - key between first and second internal keys") {
+        TestBPlusNode* internal = new TestBPlusNode(4, false);
+        internal->keys = {20, 40, 60};
+
+        // Create leaf child
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+        leaf2->keys = {25, 30, 35};
+        leaf2->values = {
+            new TestData(25, "data25"),
+            new TestData(30, "data30"),
+            new TestData(35, "data35")
+        };
+
+        internal->children = {nullptr, leaf2, nullptr, nullptr};
+
+        std::vector<TestData*> results;
+
+        // Search for key 30 (between 20 and 40)
+        tree.searchNode(internal, 30, results);
+
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 30);
+
+        delete internal;
+    }
+
+    SECTION("search in internal node - key equals internal key") {
+        TestBPlusNode* internal = new TestBPlusNode(4, false);
+        internal->keys = {20, 40, 60};
+
+        // Create leaf child - when key equals internal key, it goes to next child
+        TestBPlusNode* leaf3 = new TestBPlusNode(4, true);
+        leaf3->keys = {40, 45, 50};
+        leaf3->values = {
+            new TestData(40, "data40"),
+            new TestData(45, "data45"),
+            new TestData(50, "data50")
+        };
+
+        internal->children = {nullptr, nullptr, leaf3, nullptr};
+
+        std::vector<TestData*> results;
+
+        // Search for key 40, equals second internal key
+        tree.searchNode(internal, 40, results);
+
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 40);
+
+        delete internal;
+    }
+
+    SECTION("search in internal node - key greater than all internal keys") {
+        TestBPlusNode* internal = new TestBPlusNode(4, false);
+        internal->keys = {20, 40, 60};
+
+        // Create leaf child
+        TestBPlusNode* leaf4 = new TestBPlusNode(4, true);
+        leaf4->keys = {65, 70, 75};
+        leaf4->values = {
+            new TestData(65, "data65"),
+            new TestData(70, "data70"),
+            new TestData(75, "data75")
+        };
+
+        internal->children = {nullptr, nullptr, nullptr, leaf4};
+
+        std::vector<TestData*> results;
+
+        // Search for key 70, greater than last internal key 60
+        tree.searchNode(internal, 70, results);
+
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 70);
+
+        delete internal;
+    }
+
+    SECTION("search in two-level tree") {
+        // Build root internal node
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {30};
+
+        // Build left child (internal node)
+        TestBPlusNode* leftInternal = new TestBPlusNode(4, false);
+        leftInternal->keys = {15};
+
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        leaf1->keys = {5, 10};
+        leaf1->values = {new TestData(5, "data5"), new TestData(10, "data10")};
+
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+        leaf2->keys = {20, 25};
+        leaf2->values = {new TestData(20, "data20"), new TestData(25, "data25")};
+
+        leftInternal->children = {leaf1, leaf2};
+
+        // Build right child (leaf node directly)
+        TestBPlusNode* leaf3 = new TestBPlusNode(4, true);
+        leaf3->keys = {35, 40, 45};
+        leaf3->values = {
+            new TestData(35, "data35"),
+            new TestData(40, "data40"),
+            new TestData(45, "data45")
+        };
+
+        root->children = {leftInternal, leaf3};
+
+        std::vector<TestData*> results;
+
+        // Test searches at different levels
+        tree.searchNode(root, 10, results); // Through leftInternal -> leaf1
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 10);
+
+        results.clear();
+        tree.searchNode(root, 25, results); // Through leftInternal -> leaf2
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 25);
+
+        results.clear();
+        tree.searchNode(root, 40, results); // Directly to leaf3
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 40);
+
+        results.clear();
+        tree.searchNode(root, 100, results); // Not found
+        REQUIRE(results.empty());
+
+        delete root;
+    }
+}
+
+TEST_CASE("searchNode edge cases", "[BPlusTree][searchNode][edge]") {
+    TestBPlusTree tree(4);
+
+    SECTION("search with keys not sorted in leaf") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        // B+Tree should maintain sorted order, but test the search logic, useless hopefully
+        leaf->keys = {30, 10, 20};  // Unsorted
+        leaf->values = {
+            new TestData(30, "data30"),
+            new TestData(10, "data10"),
+            new TestData(20, "data20")
+        };
+        std::vector<TestData*> results;
+
+        // Search should still work if key exists
+        tree.searchNode(leaf, 20, results);
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 20);
+
+        delete leaf;
+    }
+
+    SECTION("search in internal node with single key") {
+        TestBPlusNode* internal = new TestBPlusNode(4, false);
+        internal->keys = {25};
+
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        leaf1->keys = {10, 15, 20};
+        leaf1->values = {
+            new TestData(10, "data10"),
+            new TestData(15, "data15"),
+            new TestData(20, "data20")
+        };
+
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+        leaf2->keys = {30, 35, 40};
+        leaf2->values = {
+            new TestData(30, "data30"),
+            new TestData(35, "data35"),
+            new TestData(40, "data40")
+        };
+
+        internal->children = {leaf1, leaf2};
+
+        std::vector<TestData*> results;
+
+        tree.searchNode(internal, 15, results); // Goes to leaf1
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 15);
+
+        results.clear();
+        tree.searchNode(internal, 35, results); // Goes to leaf2
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 35);
+
+        delete internal;
+    }
+
+    SECTION("search accumulates results in existing vector") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        leaf->keys = {10, 20, 30};
+        leaf->values = {
+            new TestData(10, "data10"),
+            new TestData(20, "data20"),
+            new TestData(30, "data30")
+        };
+
+        // Start with existing results
+        std::vector<TestData*> results;
+        results.push_back(new TestData(5, "existing"));
+
+        tree.searchNode(leaf, 20, results);
+
+        REQUIRE(results.size() == 2);
+        REQUIRE(results[0]->id == 5);
+        REQUIRE(results[1]->id == 20);
+
+        // Cleanup
+        for (auto* data : results) delete data;
+        delete leaf;
+    }
+}
