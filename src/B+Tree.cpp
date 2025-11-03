@@ -126,6 +126,32 @@ BPlusNode<T> * BPlusTree<T>::findLeaf(BPlusNode<T> *node, int key) {
 }
 
 template<typename T>
+void BPlusTree<T>::printTree(BPlusNode<T> *node, int level) {
+    if (node == nullptr) {
+        return;
+    }
+    for (int i = 0; i < level; i++) {
+        cout << " ";
+    }
+    if (node->isLeaf) {
+        cout << "Leaf: ";
+    }
+    else {
+        cout << "Internal: ";
+    }
+    for (int key : node->keys) {
+        cout << key << " ";
+    }
+    cout << endl;
+
+    if (!node->isLeaf) {
+        for (auto child : node->children) {
+            printTree(child, level + 1);
+        }
+    }
+}
+
+template<typename T>
 void BPlusTree<T>::insert(int key, T *value) {
     BPlusNode<T> *r = root;
 
@@ -162,6 +188,11 @@ vector<T *> BPlusTree<T>::rangeSearch(int minKey, int maxKey) {
         leaf = leaf->next;
     }
     return results;
+}
+
+template<typename T>
+void BPlusTree<T>::print() {
+    printTree(root, 0);
 }
 
 
