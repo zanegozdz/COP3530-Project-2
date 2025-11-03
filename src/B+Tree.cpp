@@ -92,3 +92,22 @@ void BPlusTree<T>::insertNonFull(BPlusNode<T> *node, int key, T *value) {
 
     }
 }
+
+template<typename T>
+void BPlusTree<T>::searchNode(BPlusNode<T> *node, int key, vector<T *> &results) {
+
+}
+
+template<typename T>
+void BPlusTree<T>::insert(int key, T *value) {
+    BPlusNode<T> *r = root;
+
+    //split root if full
+    if (r->keys.size() >= order - 1) {
+        BPlusNode<T> *newRoot = new BPlusNode<T>(order);
+        newRoot->children.push_back(root);
+        splitChild(newRoot, 0);
+        root = newRoot;
+    }
+    insertNonFull(root, key, value);
+}
