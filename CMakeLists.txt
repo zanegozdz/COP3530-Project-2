@@ -27,6 +27,7 @@ add_executable(Main
         src/Song.cpp # your main file
         src/MusicLibrary.cpp
         src/MusicLibary.h
+        src/TestData.h
         # your main file
         # add your own header files below - should be automatically added in CLion
         # example (can also separate with newlines):
@@ -41,7 +42,8 @@ add_executable(Tests
         # src/AVL.h src/AVL.cpp
         src/MusicLibrary.cpp
         src/MusicLibary.h
-        )
+        src/TestData.h
+)
         
 target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain) #link catch to test.cpp file
 # the name here must match that of your testing executable (the one that has test.cpp)
