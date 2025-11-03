@@ -1,7 +1,7 @@
 //
 // Created by Raymond Adams on 11/2/25.
 //
-
+/*
 #include "B+Tree.h"
 #include <iostream>
 
@@ -194,5 +194,10 @@ template<typename T>
 void BPlusTree<T>::print() {
     printTree(root, 0);
 }
+template class BPlusNode<int>;
+template class BPlusNode<string>;
+template class BPlusTree<int>;
+template class BPlusTree<string>;
 
 
+*/
