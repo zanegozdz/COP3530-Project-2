@@ -112,6 +112,20 @@ void BPlusTree<T>::searchNode(BPlusNode<T> *node, int key, vector<T *> &results)
 }
 
 template<typename T>
+BPlusNode<T> * BPlusTree<T>::findLeaf(BPlusNode<T> *node, int key) {
+    if (node->isLeaf) {
+        return node;
+    }
+    else {
+        int i = 0;
+        while (i < node->keys.size() && key >= node->keys[i]) {
+            i++;
+        }
+        return findLeaf(node->children[i], key);
+    }
+}
+
+template<typename T>
 void BPlusTree<T>::insert(int key, T *value) {
     BPlusNode<T> *r = root;
 
@@ -131,3 +145,23 @@ vector<T*> BPlusTree<T>::search(int key) {
     searchNode(root, key, results);
     return results;
 }
+
+template<typename T>
+vector<T *> BPlusTree<T>::rangeSearch(int minKey, int maxKey) {
+    vector<T *> results;
+    BPlusNode<T> *leaf = findLeaf(root, minKey);
+    while (leaf != nullptr) {
+        for (size_t i = 0; i < leaf->keys.size(); i++) {
+            if (leaf->keys[i] >= minKey && leaf->keys[i] <= maxKey) {
+                results.push_back(leaf->values[i]);
+            }
+            else if (leaf->keys[i] > maxKey) {
+                return results;
+            }
+        }
+        leaf = leaf->next;
+    }
+    return results;
+}
+
+

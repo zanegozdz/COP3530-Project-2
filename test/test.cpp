@@ -838,3 +838,460 @@ TEST_CASE("searchNode edge cases", "[BPlusTree][searchNode][edge]") {
         delete leaf;
     }
 }
+
+TEST_CASE("findLeaf functionality", "[BPlusTree][findLeaf]") {
+    TestBPlusTree tree(4);
+
+    SECTION("findLeaf in single leaf tree") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        leaf->keys = {10, 20, 30};
+
+        TestBPlusNode* result = tree.findLeaf(leaf, 15);
+
+        REQUIRE(result == leaf);
+        REQUIRE(result->isLeaf == true);
+
+        delete leaf;
+    }
+
+    SECTION("findLeaf in two-level tree - key less than root key") {
+        // Build: root[30] -> leaves [10,20] and [40,50]
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {30};
+
+        TestBPlusNode* leftLeaf = new TestBPlusNode(4, true);
+        leftLeaf->keys = {10, 20};
+
+        TestBPlusNode* rightLeaf = new TestBPlusNode(4, true);
+        rightLeaf->keys = {40, 50};
+
+        root->children = {leftLeaf, rightLeaf};
+
+        // Test keys that should go to left leaf
+        REQUIRE(tree.findLeaf(root, 5) == leftLeaf);   // < all keys
+        REQUIRE(tree.findLeaf(root, 10) == leftLeaf);  // == first key
+        REQUIRE(tree.findLeaf(root, 15) == leftLeaf);  // between keys
+        REQUIRE(tree.findLeaf(root, 20) == leftLeaf);  // == last key
+        REQUIRE(tree.findLeaf(root, 25) == leftLeaf);  // < root key
+
+        delete root;
+    }
+
+    SECTION("findLeaf in two-level tree - key greater than or equal to root key") {
+        // Build: root[30] -> leaves [10,20] and [40,50]
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {30};
+
+        TestBPlusNode* leftLeaf = new TestBPlusNode(4, true);
+        leftLeaf->keys = {10, 20};
+
+        TestBPlusNode* rightLeaf = new TestBPlusNode(4, true);
+        rightLeaf->keys = {40, 50};
+
+        root->children = {leftLeaf, rightLeaf};
+
+        // Test keys that should go to right leaf
+        REQUIRE(tree.findLeaf(root, 30) == rightLeaf);  // == root key
+        REQUIRE(tree.findLeaf(root, 35) == rightLeaf);  // > root key
+        REQUIRE(tree.findLeaf(root, 40) == rightLeaf);  // == first key in right
+        REQUIRE(tree.findLeaf(root, 45) == rightLeaf);  // between keys in right
+        REQUIRE(tree.findLeaf(root, 50) == rightLeaf);  // == last key in right
+        REQUIRE(tree.findLeaf(root, 60) == rightLeaf);  // > all keys
+
+        delete root;
+    }
+
+    SECTION("findLeaf in three-level tree") {
+
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {50};
+
+        // First internal node with keys 20, 40
+        TestBPlusNode* internal1 = new TestBPlusNode(4, false);
+        internal1->keys = {20, 40};
+
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        leaf1->keys = {10, 15};
+
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+        leaf2->keys = {25, 30, 35};
+
+        TestBPlusNode* leaf3 = new TestBPlusNode(4, true);
+        leaf3->keys = {45};
+
+        internal1->children = {leaf1, leaf2, leaf3};
+
+        // Second internal node with key 70
+        TestBPlusNode* internal2 = new TestBPlusNode(4, false);
+        internal2->keys = {70};
+
+        TestBPlusNode* leaf4 = new TestBPlusNode(4, true);
+        leaf4->keys = {55, 60, 65};
+
+        TestBPlusNode* leaf5 = new TestBPlusNode(4, true);
+        leaf5->keys = {75, 80, 85};
+
+        internal2->children = {leaf4, leaf5};
+
+        root->children = {internal1, internal2};
+
+        // Test different search paths
+        REQUIRE(tree.findLeaf(root, 10) == leaf1);   // root->internal1->leaf1
+        REQUIRE(tree.findLeaf(root, 15) == leaf1);   // root->internal1->leaf1
+        REQUIRE(tree.findLeaf(root, 25) == leaf2);   // root->internal1->leaf2
+        REQUIRE(tree.findLeaf(root, 35) == leaf2);   // root->internal1->leaf2
+        REQUIRE(tree.findLeaf(root, 45) == leaf3);   // root->internal1->leaf3
+        REQUIRE(tree.findLeaf(root, 55) == leaf4);   // root->internal2->leaf4
+        REQUIRE(tree.findLeaf(root, 65) == leaf4);   // root->internal2->leaf4
+        REQUIRE(tree.findLeaf(root, 75) == leaf5);   // root->internal2->leaf5
+        REQUIRE(tree.findLeaf(root, 85) == leaf5);   // root->internal2->leaf5
+
+        delete root;
+    }
+
+    SECTION("findLeaf with multiple keys in root") {
+        // Build: root[20, 40, 60] -> 4 leaves
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {20, 40, 60};
+
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        leaf1->keys = {5, 10, 15};
+
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+        leaf2->keys = {25, 30, 35};
+
+        TestBPlusNode* leaf3 = new TestBPlusNode(4, true);
+        leaf3->keys = {45, 50, 55};
+
+        TestBPlusNode* leaf4 = new TestBPlusNode(4, true);
+        leaf4->keys = {65, 70, 75};
+
+        root->children = {leaf1, leaf2, leaf3, leaf4};
+
+        // Test boundary cases around each internal key
+        REQUIRE(tree.findLeaf(root, 5) == leaf1);    // < 20
+        REQUIRE(tree.findLeaf(root, 15) == leaf1);   // < 20
+        REQUIRE(tree.findLeaf(root, 20) == leaf2);   // == 20, goes to next child
+        REQUIRE(tree.findLeaf(root, 25) == leaf2);   // between 20-40
+        REQUIRE(tree.findLeaf(root, 35) == leaf2);   // between 20-40
+        REQUIRE(tree.findLeaf(root, 40) == leaf3);   // == 40,  goes to next child
+        REQUIRE(tree.findLeaf(root, 45) == leaf3);   // between 40-60
+        REQUIRE(tree.findLeaf(root, 55) == leaf3);   // between 40-60
+        REQUIRE(tree.findLeaf(root, 60) == leaf4);   // == 60, goes to next child
+        REQUIRE(tree.findLeaf(root, 65) == leaf4);   // > 60
+        REQUIRE(tree.findLeaf(root, 75) == leaf4);   // > 60
+
+        delete root;
+    }
+
+    SECTION("findLeaf with duplicate searches returns same leaf") {
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {30};
+
+        TestBPlusNode* leftLeaf = new TestBPlusNode(4, true);
+        leftLeaf->keys = {10, 20};
+
+        TestBPlusNode* rightLeaf = new TestBPlusNode(4, true);
+        rightLeaf->keys = {40, 50};
+
+        root->children = {leftLeaf, rightLeaf};
+
+        // Multiple searches for same key should return same leaf
+        TestBPlusNode* result1 = tree.findLeaf(root, 15);
+        TestBPlusNode* result2 = tree.findLeaf(root, 15);
+        TestBPlusNode* result3 = tree.findLeaf(root, 15);
+
+        REQUIRE(result1 == leftLeaf);
+        REQUIRE(result2 == leftLeaf);
+        REQUIRE(result3 == leftLeaf);
+        REQUIRE(result1 == result2);
+        REQUIRE(result2 == result3);
+
+        delete root;
+    }
+}
+
+TEST_CASE("findLeaf edge cases", "[BPlusTree][findLeaf][edge]") {
+    TestBPlusTree tree(4);
+
+    SECTION("findLeaf with negative keys") {
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {0};
+
+        TestBPlusNode* leftLeaf = new TestBPlusNode(4, true);
+        leftLeaf->keys = {-20, -10};
+
+        TestBPlusNode* rightLeaf = new TestBPlusNode(4, true);
+        rightLeaf->keys = {10, 20};
+
+        root->children = {leftLeaf, rightLeaf};
+
+        REQUIRE(tree.findLeaf(root, -30) == leftLeaf); //shouldn't have negative values?
+        REQUIRE(tree.findLeaf(root, -20) == leftLeaf);
+        REQUIRE(tree.findLeaf(root, -15) == leftLeaf);
+        REQUIRE(tree.findLeaf(root, -10) == leftLeaf);
+        REQUIRE(tree.findLeaf(root, 0) == rightLeaf);
+        REQUIRE(tree.findLeaf(root, 10) == rightLeaf);
+
+        delete root;
+    }
+
+    SECTION("findLeaf with zero keys in internal nodes") {
+        // Internal node with key 0
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {0};
+
+        TestBPlusNode* leftLeaf = new TestBPlusNode(4, true);
+        leftLeaf->keys = {-5, -3};
+
+        TestBPlusNode* rightLeaf = new TestBPlusNode(4, true);
+        rightLeaf->keys = {2, 5};
+
+        root->children = {leftLeaf, rightLeaf};
+
+        REQUIRE(tree.findLeaf(root, -4) == leftLeaf);
+        REQUIRE(tree.findLeaf(root, 0) == rightLeaf);
+        REQUIRE(tree.findLeaf(root, 1) == rightLeaf);
+
+        delete root;
+    }
+
+    SECTION("findLeaf in minimum order tree") {
+        TestBPlusTree minTree(2); // order 2
+
+        TestBPlusNode* root = new TestBPlusNode(2, false);
+        root->keys = {50};
+
+        TestBPlusNode* leftLeaf = new TestBPlusNode(2, true);
+        leftLeaf->keys = {10}; // max 1 key for order 2
+
+        TestBPlusNode* rightLeaf = new TestBPlusNode(2, true);
+        rightLeaf->keys = {60}; // max 1 key for order 2
+
+        root->children = {leftLeaf, rightLeaf};
+
+        REQUIRE(minTree.findLeaf(root, 5) == leftLeaf);
+        REQUIRE(minTree.findLeaf(root, 10) == leftLeaf);
+        REQUIRE(minTree.findLeaf(root, 50) == rightLeaf);
+        REQUIRE(minTree.findLeaf(root, 60) == rightLeaf);
+
+        delete root;
+    }
+
+    SECTION("findLeaf with keys at exact boundaries") {
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {10, 20, 30};
+
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        leaf1->keys = {5};
+
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+        leaf2->keys = {15};
+
+        TestBPlusNode* leaf3 = new TestBPlusNode(4, true);
+        leaf3->keys = {25};
+
+        TestBPlusNode* leaf4 = new TestBPlusNode(4, true);
+        leaf4->keys = {35};
+
+        root->children = {leaf1, leaf2, leaf3, leaf4};
+
+        // Test exact key matches with internal nodes
+        REQUIRE(tree.findLeaf(root, 10) == leaf2);  // == first internal key
+        REQUIRE(tree.findLeaf(root, 20) == leaf3);  // == second internal key
+        REQUIRE(tree.findLeaf(root, 30) == leaf4);  // == third internal key
+
+        delete root;
+    }
+
+    SECTION("findLeaf returns actual leaf node") {
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {25};
+
+        TestBPlusNode* leftLeaf = new TestBPlusNode(4, true);
+        leftLeaf->keys = {10, 20};
+
+        TestBPlusNode* rightLeaf = new TestBPlusNode(4, true);
+        rightLeaf->keys = {30, 40};
+
+        root->children = {leftLeaf, rightLeaf};
+
+        TestBPlusNode* result = tree.findLeaf(root, 15);
+
+        REQUIRE(result->isLeaf == true);
+        REQUIRE(result == leftLeaf);
+        REQUIRE(result->keys.size() == 2);
+        REQUIRE(result->keys[0] == 10);
+        REQUIRE(result->keys[1] == 20);
+
+        delete root;
+    }
+
+    SECTION("findLeaf with empty tree (just root leaf)") {
+        TestBPlusNode* rootLeaf = new TestBPlusNode(4, true);
+        rootLeaf->keys = {5, 10, 15};
+
+        // Searching in a tree where root is already a leaf
+        REQUIRE(tree.findLeaf(rootLeaf, 5) == rootLeaf);
+        REQUIRE(tree.findLeaf(rootLeaf, 10) == rootLeaf);
+        REQUIRE(tree.findLeaf(rootLeaf, 15) == rootLeaf);
+        REQUIRE(tree.findLeaf(rootLeaf, 20) == rootLeaf); // Not found, but still returns leaf
+
+        delete rootLeaf;
+    }
+
+    SECTION("findLeaf with large key values") {
+        TestBPlusNode* root = new TestBPlusNode(4, false);
+        root->keys = {1000, 2000, 3000};
+
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        leaf1->keys = {100, 200, 300};
+
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+        leaf2->keys = {1500, 1600, 1700};
+
+        TestBPlusNode* leaf3 = new TestBPlusNode(4, true);
+        leaf3->keys = {2500, 2600, 2700};
+
+        TestBPlusNode* leaf4 = new TestBPlusNode(4, true);
+        leaf4->keys = {3500, 3600, 3700};
+
+        root->children = {leaf1, leaf2, leaf3, leaf4};
+
+        REQUIRE(tree.findLeaf(root, 500) == leaf1);
+        REQUIRE(tree.findLeaf(root, 1000) == leaf2);
+        REQUIRE(tree.findLeaf(root, 1550) == leaf2);
+        REQUIRE(tree.findLeaf(root, 2000) == leaf3);
+        REQUIRE(tree.findLeaf(root, 2550) == leaf3);
+        REQUIRE(tree.findLeaf(root, 3000) == leaf4);
+        REQUIRE(tree.findLeaf(root, 3550) == leaf4);
+
+        delete root;
+    }
+}
+
+TEST_CASE("rangeSearch: edge cases and multi-leaf traversal", "[BPlusTree][rangeSearch]") {
+    TestBPlusTree tree(4);
+
+    SECTION("Empty tree") {
+        auto results = tree.rangeSearch(10, 20);
+        REQUIRE(results.empty());
+    }
+
+    SECTION("Single leaf, range inside keys") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        leaf->keys = {10, 20, 30};
+        leaf->values = {
+            new TestData(10, "A"),
+            new TestData(20, "B"),
+            new TestData(30, "C")
+        };
+        leaf->next = nullptr;
+
+        delete tree.root;
+        tree.root = leaf;
+
+        auto results = tree.rangeSearch(15, 25);
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 20);
+
+        results = tree.rangeSearch(5, 35);
+        REQUIRE(results.size() == 3);
+    }
+
+    SECTION("Multiple linked leaves") {
+        // two linked leaves
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+
+        leaf1->keys = {10, 20};
+        leaf1->values = {new TestData(10, "A"), new TestData(20, "B")};
+        leaf2->keys = {30, 40};
+        leaf2->values = {new TestData(30, "C"), new TestData(40, "D")};
+
+        leaf1->next = leaf2;
+        leaf2->next = nullptr;
+
+        delete tree.root;
+        tree.root = leaf1;
+
+        // Range for both leaves
+        auto results = tree.rangeSearch(15, 40);
+        REQUIRE(results.size() == 3);
+        REQUIRE(results[0]->id == 20);
+        REQUIRE(results[1]->id == 30);
+        REQUIRE(results[2]->id == 40);  // boundary check
+
+        // Range that matches all keys
+        results = tree.rangeSearch(0, 50);
+        REQUIRE(results.size() == 4);
+
+        // Range below all keys
+        results = tree.rangeSearch(0, 5);
+        REQUIRE(results.empty());
+
+        // Range above all keys
+        results = tree.rangeSearch(45, 50);
+        REQUIRE(results.empty());
+    }
+
+    SECTION("Partial overlap with second leaf") {
+        // Linked leaves with gaps
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+
+        leaf1->keys = {10, 20};
+        leaf1->values = {new TestData(10, "A"), new TestData(20, "B")};
+        leaf2->keys = {30, 40};
+        leaf2->values = {new TestData(30, "C"), new TestData(40, "D")};
+
+        leaf1->next = leaf2;
+        leaf2->next = nullptr;
+
+        delete tree.root;
+        tree.root = leaf1;
+
+        // Range starts in first leaf and ends in second
+        auto results = tree.rangeSearch(15, 40);
+        REQUIRE(results.size() == 3);
+        REQUIRE(results[0]->id == 20);
+        REQUIRE(results[1]->id == 30);
+        REQUIRE(results[2]->id == 40); // still included because <= maxKey
+    }
+
+    SECTION("Range entirely within second leaf") {
+        TestBPlusNode* leaf1 = new TestBPlusNode(4, true);
+        TestBPlusNode* leaf2 = new TestBPlusNode(4, true);
+
+        leaf1->keys = {10, 20};
+        leaf1->values = {new TestData(10, "A"), new TestData(20, "B")};
+        leaf2->keys = {30, 40};
+        leaf2->values = {new TestData(30, "C"), new TestData(40, "D")};
+
+        leaf1->next = leaf2;
+        leaf2->next = nullptr;
+
+        delete tree.root;
+        tree.root = leaf1;
+
+        auto results = tree.rangeSearch(35, 40);
+        REQUIRE(results.size() == 1);
+        REQUIRE(results[0]->id == 40);
+    }
+
+    SECTION("Range completely outside tree") {
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+        leaf->keys = {10, 20, 30};
+        leaf->values = {new TestData(10,"A"), new TestData(20,"B"), new TestData(30,"C")};
+        leaf->next = nullptr;
+
+        delete tree.root;
+        tree.root = leaf;
+
+        auto results = tree.rangeSearch(100, 200);
+        REQUIRE(results.empty());
+
+        results = tree.rangeSearch(-50, 5);
+        REQUIRE(results.empty());
+    }
+}
