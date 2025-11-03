@@ -7,7 +7,7 @@
 
 using namespace std;
 
-TEST_CASE("B+ Tree Insert - Single Element", "[insert]") {
+TEST_CASE("Insert - Single Element", "[insert]") {
     TestBPlusTree tree(4);
     TestData* data = new TestData(1, "First");
 
@@ -21,7 +21,7 @@ TEST_CASE("B+ Tree Insert - Single Element", "[insert]") {
     delete data;
 }
 
-TEST_CASE("B+ Tree Insert - Multiple Elements", "[insert]") {
+TEST_CASE("Insert - Multiple Elements", "[insert]") {
     TestBPlusTree tree(4);
     TestData* data1 = new TestData(1, "First");
     TestData* data2 = new TestData(2, "Second");
@@ -40,7 +40,7 @@ TEST_CASE("B+ Tree Insert - Multiple Elements", "[insert]") {
     delete data3;
 }
 
-TEST_CASE("B+ Tree Insert - Out of Order", "[insert]") {
+TEST_CASE("Insert - Out of Order", "[insert]") {
     TestBPlusTree tree(4);
     TestData* data1 = new TestData(1, "First");
     TestData* data2 = new TestData(2, "Second");
@@ -70,7 +70,7 @@ TEST_CASE("B+ Tree Insert - Out of Order", "[insert]") {
     delete data3;
 }
 
-TEST_CASE("B+ Tree Insert - Duplicate Keys", "[insert]") {
+TEST_CASE("Insert - Duplicate Keys", "[insert]") {
     TestBPlusTree tree(4);
     TestData* data1 = new TestData(1, "First");
     TestData* data2 = new TestData(2, "Second");
@@ -97,7 +97,7 @@ TEST_CASE("B+ Tree Insert - Duplicate Keys", "[insert]") {
     delete data2;
 }
 
-TEST_CASE("B+ Tree Insert - Causes Split", "[insert][split]") {
+TEST_CASE("Insert - Causes Split", "[insert][split]") {
     TestBPlusTree tree(3);  // Order 3: max 2 keys per node
     TestData* data1 = new TestData(1, "A");
     TestData* data2 = new TestData(2, "B");
@@ -128,7 +128,7 @@ TEST_CASE("B+ Tree Insert - Causes Split", "[insert][split]") {
     delete data4;
 }
 
-TEST_CASE("B+ Tree Insert - Large Number of Elements", "[insert]") {
+TEST_CASE("Insert - Large Number of Elements", "[insert]") {
     TestBPlusTree tree(4);
     std::vector<TestData*> allData;
 
@@ -157,7 +157,7 @@ TEST_CASE("B+ Tree Insert - Large Number of Elements", "[insert]") {
     }
 }
 
-TEST_CASE("B+ Tree Insert - Negative Keys", "[insert]") {
+TEST_CASE("Insert - Negative Keys", "[insert]") {
     TestBPlusTree tree(4);
     TestData* data1 = new TestData(1, "Negative");
     TestData* data2 = new TestData(2, "Zero");
@@ -182,7 +182,7 @@ TEST_CASE("B+ Tree Insert - Negative Keys", "[insert]") {
     delete data3;
 }
 
-TEST_CASE("B+ Tree Insert - Range Search After Insert", "[insert][range]") {
+TEST_CASE("Insert - Range Search After Insert", "[insert][range]") {
     TestBPlusTree tree(4);
     std::vector<TestData*> allData;
 
@@ -219,7 +219,7 @@ TEST_CASE("B+ Tree Insert - Range Search After Insert", "[insert][range]") {
     }
 }
 
-TEST_CASE("B+ Tree Insert - Search Non-Existent Key", "[insert][search]") {
+TEST_CASE("Insert - Search Non-Existent Key", "[insert][search]") {
     TestBPlusTree tree(4);
     TestData* data1 = new TestData(1, "First");
     TestData* data2 = new TestData(2, "Second");
@@ -236,7 +236,7 @@ TEST_CASE("B+ Tree Insert - Search Non-Existent Key", "[insert][search]") {
     delete data2;
 }
 
-TEST_CASE("B+ Tree Insert - Multiple Splits", "[insert][split]") {
+TEST_CASE("Insert - Multiple Splits", "[insert][split]") {
     TestBPlusTree tree(3);  // Small order to force multiple splits
     std::vector<TestData*> allData;
 
@@ -258,5 +258,262 @@ TEST_CASE("B+ Tree Insert - Multiple Splits", "[insert][split]") {
     // Cleanup
     for (auto* data : allData) {
         delete data;
+    }
+}
+
+TEST_CASE("splitChild correctly splits a leaf node", "[BPlusTree][splitChild][leaf]") {
+    TestBPlusTree tree(4);
+
+    // parent node and one child leaf
+    TestBPlusNode* parent = new TestBPlusNode(4, false);
+    TestBPlusNode* child = new TestBPlusNode(4, true);
+
+    // Fill child
+    for (int i = 1; i <= 4; i++) {
+        child->keys.push_back(i * 10);
+        child->values.push_back(new TestData(i, "val" + std::to_string(i)));
+    }
+
+    parent->children.push_back(child);
+
+    // Call splitChild
+    tree.splitChild(parent, 0);
+
+    REQUIRE(parent->keys.size() == 1);
+    REQUIRE(parent->keys[0] == 30); // newNode->keys[0]
+
+    REQUIRE(parent->children.size() == 2);
+    TestBPlusNode* left = parent->children[0];
+    TestBPlusNode* right = parent->children[1];
+
+    // Left half
+    REQUIRE(left->keys.size() == 2);
+    REQUIRE(left->keys[0] == 10);
+    REQUIRE(left->keys[1] == 20);
+
+    // Right half
+    REQUIRE(right->keys.size() == 2);
+    REQUIRE(right->keys[0] == 30);
+    REQUIRE(right->keys[1] == 40);
+
+    // Check next pointer
+    REQUIRE(left->next == right);
+    REQUIRE(right->next == nullptr);
+
+    delete parent; // destructor cleans up children
+}
+
+TEST_CASE("splitChild correctly splits an internal node", "[BPlusTree][splitChild][internal]") {
+    TestBPlusTree tree(4); // order 4 = max 4 children, max 3 keys
+
+    // Parent and one internal child
+    TestBPlusNode* parent = new TestBPlusNode(4, false);
+    TestBPlusNode* child = new TestBPlusNode(4, false);
+
+    // Fill child to capacity (3 keys, 4 children for internal node)
+    for (int i = 1; i <= 3; i++) {
+        child->keys.push_back(i * 10); // keys: [10, 20, 30]
+    }
+    for (int i = 0; i < 4; i++) {
+        child->children.push_back(new TestBPlusNode(4, true));
+    }
+
+    parent->children.push_back(child);
+
+    // Call splitChild
+    tree.splitChild(parent, 0);
+
+    REQUIRE(parent->keys.size() == 1);
+    REQUIRE(parent->keys[0] == 20); // middle key promoted
+
+    REQUIRE(parent->children.size() == 2);
+    TestBPlusNode* left = parent->children[0];
+    TestBPlusNode* right = parent->children[1];
+
+    // Left node should get first half of keys
+    REQUIRE(left->keys.size() == 1);
+    REQUIRE(left->keys[0] == 10);
+    REQUIRE(left->children.size() == 2); // keys + 1
+
+    // Right node should get remaining keys
+    REQUIRE(right->keys.size() == 1);
+    REQUIRE(right->keys[0] == 30);
+    REQUIRE(right->children.size() == 2); // keys + 1
+
+    // Cleanup
+    delete parent;
+}
+
+TEST_CASE("splitChild for leaf nodes", "[BPlusTree][splitChild][leaf]") {
+    TestBPlusTree tree(4); // order 4
+
+    SECTION("split leaf node with exact capacity") {
+        TestBPlusNode* parent = new TestBPlusNode(4, false);
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+
+        // Fill leaf to capacity (order-1 = 3 keys)
+        for (int i = 1; i <= 3; i++) {
+            leaf->keys.push_back(i * 10);
+            leaf->values.push_back(new TestData(i * 10, "data" + std::to_string(i * 10)));
+        }
+
+        parent->children.push_back(leaf);
+
+        tree.splitChild(parent, 0);
+
+        REQUIRE(parent->keys.size() == 1);
+        REQUIRE(parent->keys[0] == 20); // First key of new node
+
+        REQUIRE(parent->children.size() == 2);
+
+        TestBPlusNode* left = parent->children[0];
+        TestBPlusNode* right = parent->children[1];
+
+        // Left node gets first half
+        REQUIRE(left->keys.size() == 1);
+        REQUIRE(left->keys[0] == 10);
+        REQUIRE(left->values.size() == 1);
+
+        // Right node gets second half
+        REQUIRE(right->keys.size() == 2);
+        REQUIRE(right->keys[0] == 20);
+        REQUIRE(right->keys[1] == 30);
+        REQUIRE(right->values.size() == 2);
+
+        // Verify linked list connection
+        REQUIRE(left->next == right);
+        REQUIRE(right->next == nullptr);
+
+        delete parent;
+    }
+
+    SECTION("split leaf node with more than capacity") {
+        TestBPlusNode* parent = new TestBPlusNode(4, false);
+        TestBPlusNode* leaf = new TestBPlusNode(4, true);
+
+        // Overfill leaf (4 keys when max is 3)
+        for (int i = 1; i <= 4; i++) {
+            leaf->keys.push_back(i * 5);
+            leaf->values.push_back(new TestData(i * 5, "data" + std::to_string(i * 5)));
+        }
+
+        parent->children.push_back(leaf);
+
+        tree.splitChild(parent, 0);
+
+        REQUIRE(parent->keys.size() == 1);
+        REQUIRE(parent->keys[0] == 15); // First key of new node (keys: 5,10,15,20 -> split at 10)
+
+        TestBPlusNode* left = parent->children[0];
+        TestBPlusNode* right = parent->children[1];
+
+        REQUIRE(left->keys.size() == 2); // 5,10
+        REQUIRE(left->keys[0] == 5);
+        REQUIRE(left->keys[1] == 10);
+
+        REQUIRE(right->keys.size() == 2); // 15,20
+        REQUIRE(right->keys[0] == 15);
+        REQUIRE(right->keys[1] == 20);
+
+        delete parent;
+    }
+}
+
+TEST_CASE("splitChild for internal nodes", "[BPlusTree][splitChild][internal]") {
+    TestBPlusTree tree(4); // order 4
+
+    SECTION("split internal node with exact capacity") {
+        TestBPlusNode* parent = new TestBPlusNode(4, false);
+        TestBPlusNode* internal = new TestBPlusNode(4, false);
+
+        // Fill internal node to capacity (order-1 = 3 keys, 4 children)
+        internal->keys = {10, 20, 30};
+        for (int i = 0; i < 4; i++) {
+            internal->children.push_back(new TestBPlusNode(4, true));
+        }
+
+        parent->children.push_back(internal);
+
+        tree.splitChild(parent, 0);
+
+        REQUIRE(parent->keys.size() == 1);
+        REQUIRE(parent->keys[0] == 20); // Middle key promoted (keys: 10,20,30 -> mid index = 1)
+
+        REQUIRE(parent->children.size() == 2);
+
+        TestBPlusNode* left = parent->children[0];
+        TestBPlusNode* right = parent->children[1];
+
+        // Left gets keys before middle (index 0)
+        REQUIRE(left->keys.size() == 1);
+        REQUIRE(left->keys[0] == 10);
+        REQUIRE(left->children.size() == 2);
+
+        // Right gets keys after middle (indices 2+)
+        REQUIRE(right->keys.size() == 1);
+        REQUIRE(right->keys[0] == 30);
+        REQUIRE(right->children.size() == 2);
+
+        delete parent;
+    }
+
+    SECTION("split internal node with 4 keys") {
+        TestBPlusNode* parent = new TestBPlusNode(4, false);
+        TestBPlusNode* internal = new TestBPlusNode(4, false);
+
+        // 4 keys, 5 children (overfull for order 4)
+        internal->keys = {5, 15, 25, 35};
+        for (int i = 0; i < 5; i++) {
+            internal->children.push_back(new TestBPlusNode(4, true));
+        }
+
+        parent->children.push_back(internal);
+        tree.splitChild(parent, 0);
+
+        REQUIRE(parent->keys.size() == 1);
+        // With 4 keys, mid = 4/2 = 2, so key at index 2 (25) is promoted
+        REQUIRE(parent->keys[0] == 25);
+
+        TestBPlusNode* left = parent->children[0];
+        TestBPlusNode* right = parent->children[1];
+
+        REQUIRE(left->keys.size() == 2); // 5,15
+        REQUIRE(left->keys[0] == 5);
+        REQUIRE(left->keys[1] == 15);
+        REQUIRE(left->children.size() == 3);
+
+        REQUIRE(right->keys.size() == 1); // 35
+        REQUIRE(right->keys[0] == 35);
+        REQUIRE(right->children.size() == 2);
+
+        delete parent;
+    }
+}
+
+TEST_CASE("splitChild boundary cases", "[BPlusTree][splitChild][boundary]") {
+    SECTION("minimum possible split") {
+        TestBPlusTree tree(2); // Minimum order; useless test case since we have 270,000 data points
+
+        TestBPlusNode* parent = new TestBPlusNode(2, false);
+        TestBPlusNode* leaf = new TestBPlusNode(2, true);
+
+        // Order 2: max 1 key, so 2 keys triggers split
+        leaf->keys.push_back(10);
+        leaf->values.push_back(new TestData(10, "data10"));
+        leaf->keys.push_back(20);
+        leaf->values.push_back(new TestData(20, "data20"));
+
+        parent->children.push_back(leaf);
+        tree.splitChild(parent, 0);
+
+        REQUIRE(parent->keys.size() == 1);
+        REQUIRE(parent->keys[0] == 20); // First key of right node
+
+        REQUIRE(parent->children[0]->keys.size() == 1);
+        REQUIRE(parent->children[0]->keys[0] == 10);
+        REQUIRE(parent->children[1]->keys.size() == 1);
+        REQUIRE(parent->children[1]->keys[0] == 20);
+
+        delete parent;
     }
 }
