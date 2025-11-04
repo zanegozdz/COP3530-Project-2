@@ -20,6 +20,10 @@ MusicLibrary::MusicLibrary()
       danceabilityTree(order)
 {}
 
+void MusicLibrary::changeOrder(int ord) {
+    this->order = ord;
+}
+
 void MusicLibrary::loadData() {
     ifstream file(filename);
     if (!file.is_open()) {
