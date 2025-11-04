@@ -52,8 +52,8 @@ public:
     string filename = "../data/new_dataset.csv";
     void loadData();
     void buildDS();
-    vector<Song> searchHashTable(vector<string> attr);
-    vector<Song> searchBPlusTree(vector<string> attr);
+    vector<Song*> searchHashTable(vector<string> attr);
+    vector<Song*> searchBPlusTree(vector<string> attr);
     void benchmarkTest(vector<string> attr);
     MusicLibrary();
     ~MusicLibrary();

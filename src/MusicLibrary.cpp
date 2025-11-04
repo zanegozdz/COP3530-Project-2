@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <unordered_set>
 using namespace std;
 template<typename K, typename V>
 MusicLibrary<K, V>::MusicLibrary()
@@ -114,15 +115,46 @@ template<typename K, typename V>
 vector<Song> MusicLibrary<K, V>::searchHashTable(vector<string> attr) {
 
 }
+
+vector<Song*> intersectResults(vector<Song*>& a, vector<Song*>& b) {
+    vector<Song*> result;
+    unordered_set<Song*> aSet(a.begin(), a.end());
+    unordered_set<Song*> bSet(b.begin(), b.end());
+    for (Song* song : aSet) {
+        if (bSet.count(song) > 0) {
+            result.push_back(song);
+        }
+    }
+    return result;
+}
+
 template<typename K, typename V>
-vector<Song> MusicLibrary<K, V>::searchBPlusTree(vector<string> attr) {
+vector<Song*> MusicLibrary<K, V>::searchBPlusTree(vector<string> attr) {
 	vector<vector<Song*>> results;
     for (int i = 0; i < attr.size(); i++) {
         if (attr[i] != "-1") {
-			results.push_back(trees[i].search(
+			results.push_back(trees[i].search(attr[i]));
         }
     }
+
+    if (results.empty()) {
+        return vector<Song*>();
+    }
+    if (results.size() == 1) {
+        return results[0];
+    }
+
+    vector<Song*> intersection(results[0].begin(), results[0].end());
+
+    for (int i = 1; i < results.size(); i++) {
+        if (intersection.empty()) {
+            break;
+        }
+        intersection = intersectResults(intersection, results[i]);
+    }
+    return intersection;
 }
+
 template<typename K, typename V>
 void MusicLibrary<K, V>::benchmarkTest(vector<string> attr) {
 }
