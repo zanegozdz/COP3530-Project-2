@@ -41,9 +41,11 @@ class MusicLibrary {
 
 
     vector<Song> songs;
+    vector<string> parseCSVLine(const string& line);
+    vector<Song*> songsPtrs;
 
 public:
-    string filename = "data/new_dataset.csv";
+    string filename = "../data/new_dataset.csv";
     void loadData();
     void buildDS();
     vector<Song> searchHashTable(vector<string> attr);
@@ -51,6 +53,11 @@ public:
     void benchmarkTest(vector<string> attr);
     MusicLibrary();
     ~MusicLibrary();
+
+    BPlusTree<string, Song>& getArtistTree() { return artistTree; }
+    BPlusTree<int, Song>& getTempoTree() { return tempoTree; }
+    BPlusTree<string, Song>& getGenreTree() { return genreTree; }
+    BPlusTree<int, Song>& getPopularityTree() { return popularityTree; }
 };
 
 

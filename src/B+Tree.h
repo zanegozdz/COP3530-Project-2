@@ -100,25 +100,26 @@ private:
 
     void insertNonFull(BPlusNode<K, V> *node, K key, V *value) {
         if (node->isLeaf) {
-            int i = node->keys.size() - 1;
-            node->keys.push_back(0);
-            node->values.push_back(nullptr);
-
-            while (i >= 0 && key < node->keys[i]) {
-                node->keys[i + 1] = node->keys[i];
-                node->values[i + 1] = node->values[i];
-                i--;
+            // Find insertion position
+            int i = 0;
+            while (i < node->keys.size() && key > node->keys[i]) {
+                i++;
             }
 
-            node->keys[i + 1] = key;
-            node->values[i + 1] = value;
+            // Insert at position i
+            node->keys.insert(node->keys.begin() + i, key);
+            node->values.insert(node->values.begin() + i, value);
         } else {
             // Find child to insert into
-            int i = node->keys.size() - 1;
-            while (i >= 0 && key < node->keys[i]) {
-                i--;
+            int i = 0;
+            while (i < node->keys.size() && key >= node->keys[i]) {
+                i++;
             }
-            i++;
+
+            // Ensure child exists
+            if (i >= node->children.size()) {
+                node->children.push_back(new BPlusNode<K,V>(order, true));
+            }
 
             // Split child if full
             if (node->children[i]->keys.size() >= order - 1) {
@@ -129,24 +130,36 @@ private:
             }
 
             insertNonFull(node->children[i], key, value);
-
         }
     }
 
     void searchNode(BPlusNode<K, V> *node, K key, vector<V *> &results) {
+        if (node == nullptr) return;
+
         if (node->isLeaf) {
+            // Search leaf for all matching keys
             for (size_t i = 0; i < node->keys.size(); i++) {
                 if (node->keys[i] == key) {
                     results.push_back(node->values[i]);
                 }
             }
-        }
-        else {
-            int i = 0;
-            while (i < node->keys.size() && key >= node->keys[i]) {
-                i++;
+        } else {
+            // search all children that might contain the key
+            for (size_t i = 0; i < node->children.size(); i++) {
+                bool mightContainKey = false;
+
+                if (i == 0) {
+                    mightContainKey = (node->keys.size() == 0 || key <= node->keys[0]);
+                } else if (i < node->keys.size()) {
+                    mightContainKey = (key >= node->keys[i-1] && key <= node->keys[i]);
+                } else {
+                    mightContainKey = (key >= node->keys[node->keys.size() - 1]);
+                }
+
+                if (mightContainKey) {
+                    searchNode(node->children[i], key, results);
+                }
             }
-            searchNode(node->children[i], key, results);
         }
     }
 
@@ -187,6 +200,9 @@ private:
             }
         }
     }
+
+
+
 public:
     BPlusTree(int ord = 32) : order(ord) {
         root = new BPlusNode<K, V>(order, true);

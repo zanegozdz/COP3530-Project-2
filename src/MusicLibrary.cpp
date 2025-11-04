@@ -20,6 +20,25 @@ MusicLibrary::MusicLibrary()
       danceabilityTree(order)
 {}
 
+vector<string> MusicLibrary::parseCSVLine(const string& line) {
+    vector<string> result;
+    string field;
+    bool inQuotes = false;
+
+    for (char c : line) {
+        if (c == '"') {
+            inQuotes = !inQuotes;
+        } else if (c == ',' && !inQuotes) {
+            result.push_back(field);
+            field.clear();
+        } else {
+            field += c;
+        }
+    }
+    result.push_back(field);
+    return result;
+}
+
 void MusicLibrary::loadData() {
     ifstream file(filename);
     if (!file.is_open()) {
@@ -27,23 +46,37 @@ void MusicLibrary::loadData() {
         return;
     }
 
+    string header;
+    getline(file, header); // skip header line
+
     string line;
     while (getline(file, line)) {
         vector<string> attr;
         stringstream ss(line);
         string attribute;
 
-        while (getline(ss, attribute, ',')) {
-            attr.push_back(attribute);
-        }
+        attr = parseCSVLine(line);
 
         if (attr.size() < 10) continue;
 
-        Song song(attr[0], attr[1], attr[2], attr[3],
-            stoi(attr[4]), stoi(attr[5]), attr[6], stoi(attr[7]),
-            stoi(attr[8]), stoi(attr[9]));
+        Song* songPtr = new Song(attr[0], attr[1], attr[2], attr[3],
+                         stoi(attr[4]), stoi(attr[5]), attr[6],
+                         stoi(attr[7]), stoi(attr[8]), stoi(attr[9]));
 
-        songs.push_back(song);
+        // store pointer in a separate vector for lifetime management
+        songsPtrs.push_back(songPtr);
+
+        // insert into B+ trees
+        artistTree.insert(attr[0], songPtr);
+        titleTree.insert(attr[1], songPtr);
+        emotionTree.insert(attr[2], songPtr);
+        genreTree.insert(attr[3], songPtr);
+        releaseTree.insert(stoi(attr[4]), songPtr);
+        tempoTree.insert(stoi(attr[5]), songPtr);
+        explicitTree.insert(attr[6], songPtr);
+        popularityTree.insert(stoi(attr[7]), songPtr);
+        energyTree.insert(stoi(attr[8]), songPtr);
+        danceabilityTree.insert(stoi(attr[9]), songPtr);
     }
 }
 
@@ -71,5 +104,11 @@ void MusicLibrary::buildDS() {
         energyTree.insert(song.energy, &song);
         danceabilityTree.insert(song.danceability, &song);
 
+    }
+}
+
+MusicLibrary::~MusicLibrary() {
+    for (Song* songPtr : songsPtrs) {
+        delete songPtr;
     }
 }
