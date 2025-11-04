@@ -88,7 +88,7 @@ private:
             newNode->keys.assign(node->keys.begin() + mid + 1, node->keys.end());
             newNode->children.assign(node->children.begin() + mid + 1, node->children.end());
 
-            int midKey = node->keys[mid];
+            auto midKey = node->keys[mid];
             node->keys.resize(mid);
             node->children.resize(mid + 1);
 
@@ -176,7 +176,7 @@ private:
         else {
             cout << "Internal: ";
         }
-        for (int key : node->keys) {
+        for (auto key : node->keys) {
             cout << key << " ";
         }
         cout << endl;
@@ -192,7 +192,7 @@ public:
         root = new BPlusNode<K, V>(order, true);
     }
 
-    void insert(int key, V *value) {
+    void insert(K key, V *value) {
         BPlusNode<K, V> *r = root;
 
         //split root if full
@@ -205,7 +205,7 @@ public:
         insertNonFull(root, key, value);
     }
 
-    vector<V*> search(int key) {
+    vector<V*> search(K key) {
         vector<V*> results;
         searchNode(root, key, results);
         return results;

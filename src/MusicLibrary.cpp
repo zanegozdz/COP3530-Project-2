@@ -7,8 +7,20 @@
 #include <sstream>
 using namespace std;
 
-template<typename T>
-void MusicLibrary<T>::loadData() {
+MusicLibrary::MusicLibrary()
+    : artistTree(order),
+      titleTree(order),
+      emotionTree(order),
+      genreTree(order),
+      releaseTree(order),
+      tempoTree(order),
+      explicitTree(order),
+      popularityTree(order),
+      energyTree(order),
+      danceabilityTree(order)
+{}
+
+void MusicLibrary::loadData() {
     ifstream file(filename);
     if (!file.is_open()) {
         cout << "Can't open file" << filename << "\n";
@@ -35,8 +47,7 @@ void MusicLibrary<T>::loadData() {
     }
 }
 
-template<typename T>
-void MusicLibrary<T>::buildDS() {
+void MusicLibrary::buildDS() {
     for (Song& song : songs) {
         artistTable[song.artist].push_back(song);
         titleTable[song.songName].push_back(song);

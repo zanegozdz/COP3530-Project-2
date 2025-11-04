@@ -15,7 +15,6 @@
 
 using namespace std;
 
-template<typename T>
 class MusicLibrary {
     unordered_map<string, vector<Song>> artistTable;
     unordered_map<string, vector<Song>> titleTable;
@@ -28,16 +27,17 @@ class MusicLibrary {
     unordered_map<int, vector<Song>> energyTable;
     unordered_map<int, vector<Song>> danceabilityTable;
 
-    BPlusTree<string> artistTree;
-    BPlusTree<string> titleTree;
-    BPlusTree<string> emotionTree;
-    BPlusTree<string> genreTree;
-    BPlusTree<int> releaseTree;
-    BPlusTree<int> tempoTree;
-    BPlusTree<int> explicitTree;
-    BPlusTree<int> popularityTree;
-    BPlusTree<int> energyTree;
-    BPlusTree<int> danceabilityTree;
+    int order = 4;
+    BPlusTree<string, Song> artistTree;
+    BPlusTree<string, Song> titleTree;
+    BPlusTree<string, Song> emotionTree;
+    BPlusTree<string, Song> genreTree;
+    BPlusTree<int, Song> releaseTree;
+    BPlusTree<int, Song> tempoTree;
+    BPlusTree<string, Song> explicitTree;
+    BPlusTree<int, Song> popularityTree;
+    BPlusTree<int, Song> energyTree;
+    BPlusTree<int, Song> danceabilityTree;
 
 
     vector<Song> songs;
