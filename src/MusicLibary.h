@@ -17,16 +17,16 @@ using namespace std;
 
 template<typename K, typename V>
 class MusicLibrary {
-    unordered_map<string, vector<Song>> artistTable;
-    unordered_map<string, vector<Song>> titleTable;
-    unordered_map<string, vector<Song>> emotionTable;
-    unordered_map<string, vector<Song>> genreTable;
-    unordered_map<int, vector<Song>> releaseTable;
-    unordered_map<int, vector<Song>> tempoTable;
-    unordered_map<string, vector<Song>> explicitTable;
-    unordered_map<int, vector<Song>> popularityTable;
-    unordered_map<int, vector<Song>> energyTable;
-    unordered_map<int, vector<Song>> danceabilityTable;
+    unordered_map<string, vector<Song*>> artistTable;
+    unordered_map<string, vector<Song*>> titleTable;
+    unordered_map<string, vector<Song*>> emotionTable;
+    unordered_map<string, vector<Song*>> genreTable;
+    unordered_map<int, vector<Song*>> releaseTable;
+    unordered_map<int, vector<Song*>> tempoTable;
+    unordered_map<string, vector<Song*>> explicitTable;
+    unordered_map<int, vector<Song*>> popularityTable;
+    unordered_map<int, vector<Song*>> energyTable;
+    unordered_map<int, vector<Song*>> danceabilityTable;
 
     int order = 4;
     BPlusTree<string, Song> artistTree;
@@ -45,13 +45,22 @@ class MusicLibrary {
     vector<string> parseCSVLine(const string& line);
     vector<Song*> songsPtrs;
 
-    vector<BPlusTree<K, V>> trees = {artistTree, titleTree, emotionTree, genreTree,
-        releaseTree, tempoTree, explicitTree, popularityTree, energyTree, danceabilityTree};
+    vector<BPlusTree<K, V>> trees = {
+        artistTree, titleTree, emotionTree, genreTree,
+        releaseTree, tempoTree, explicitTree, popularityTree, energyTree,
+        danceabilityTree
+    };
 
+    vector<unordered_map<K, vector<Song*>>> tables = {
+        artistTable, titleTable, emotionTable, genreTable,
+        releaseTable, tempoTable, explicitTable, popularityTable,
+        energyTable, danceabilityTable
+    };
 public:
     string filename = "../data/new_dataset.csv";
     void loadData();
     void buildDS();
+    vector<Song*> searchTable(K key);
     vector<Song*> searchHashTable(vector<string> attr);
     vector<Song*> searchBPlusTree(vector<string> attr);
     void benchmarkTest(vector<string> attr);

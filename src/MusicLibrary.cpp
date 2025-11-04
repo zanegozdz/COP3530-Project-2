@@ -87,16 +87,16 @@ void MusicLibrary<K, V>::loadData() {
 template<typename K, typename V>
 void MusicLibrary<K, V>::buildDS() {
     for (Song& song : songs) {
-        artistTable[song.artist].push_back(song);
-        titleTable[song.songName].push_back(song);
-        emotionTable[song.emotion].push_back(song);
-        genreTable[song.genre].push_back(song);
-        releaseTable[song.releaseDate].push_back(song);
-        tempoTable[song.tempo].push_back(song);
-        explicitTable[song.explicit_].push_back(song);
-        popularityTable[song.popularity].push_back(song);
-        energyTable[song.energy].push_back(song);
-        danceabilityTable[song.danceability].push_back(song);
+        artistTable[song.artist].push_back(&song);
+        titleTable[song.songName].push_back(&song);
+        emotionTable[song.emotion].push_back(&song);
+        genreTable[song.genre].push_back(&song);
+        releaseTable[song.releaseDate].push_back(&song);
+        tempoTable[song.tempo].push_back(&song);
+        explicitTable[song.explicit_].push_back(&song);
+        popularityTable[song.popularity].push_back(&song);
+        energyTable[song.energy].push_back(&song);
+        danceabilityTable[song.danceability].push_back(&song);
 
         artistTree.insert(song.artist, &song);
         titleTree.insert(song.songName, &song);
@@ -111,10 +111,6 @@ void MusicLibrary<K, V>::buildDS() {
 
     }
 }
-template<typename K, typename V>
-vector<Song> MusicLibrary<K, V>::searchHashTable(vector<string> attr) {
-
-}
 
 vector<Song*> intersectResults(vector<Song*>& a, vector<Song*>& b) {
     vector<Song*> result;
@@ -126,6 +122,36 @@ vector<Song*> intersectResults(vector<Song*>& a, vector<Song*>& b) {
         }
     }
     return result;
+}
+
+template<typename K, typename V>
+vector<Song*> MusicLibrary<K, V>::searchHashTable(vector<string> attr) {
+    vector<vector<Song*>> results;
+    for (int i = 0; i < attr.size(); i++) {
+        if (attr[i] == "-1") {
+            auto it = tables[i].find(attr[i]);
+            if (it != tables[i].end()) {
+                results.push_back(it->second);
+            }
+        }
+    }
+
+    if (results.empty()) {
+        return vector<Song*>();
+    }
+    if (results.size() == 1) {
+        return results[0];
+    }
+
+    vector<Song*> intersection = results[0];
+
+    for (int i = 1; i < results.size(); i++) {
+        if (intersection.empty()) {
+            break;
+        }
+        intersection = intersectResults(intersection, results[i]);
+    }
+    return intersection;
 }
 
 template<typename K, typename V>
@@ -144,7 +170,7 @@ vector<Song*> MusicLibrary<K, V>::searchBPlusTree(vector<string> attr) {
         return results[0];
     }
 
-    vector<Song*> intersection(results[0].begin(), results[0].end());
+    vector<Song*> intersection = results[0];
 
     for (int i = 1; i < results.size(); i++) {
         if (intersection.empty()) {
@@ -157,6 +183,7 @@ vector<Song*> MusicLibrary<K, V>::searchBPlusTree(vector<string> attr) {
 
 template<typename K, typename V>
 void MusicLibrary<K, V>::benchmarkTest(vector<string> attr) {
+
 }
 template<typename K, typename V>
 MusicLibrary<K, V>::~MusicLibrary() {
