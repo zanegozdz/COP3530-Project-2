@@ -27,7 +27,7 @@ class MusicLibrary {
     unordered_map<int, vector<Song>> energyTable;
     unordered_map<int, vector<Song>> danceabilityTable;
 
-    int order = 32;
+    int order = 4;
     BPlusTree<string, Song> artistTree;
     BPlusTree<string, Song> titleTree;
     BPlusTree<string, Song> emotionTree;
@@ -41,9 +41,11 @@ class MusicLibrary {
 
 
     vector<Song> songs;
+    vector<string> parseCSVLine(const string& line);
+    vector<Song*> songsPtrs;
 
 public:
-    string filename = "data/new_dataset.csv";
+    string filename = "../data/new_dataset.csv";
     void loadData();
     void buildDS();
     vector<Song> searchHashTable(vector<string> attr);
@@ -52,6 +54,11 @@ public:
     MusicLibrary();
     ~MusicLibrary();
     void changeOrder(int ord);
+
+    BPlusTree<string, Song>& getArtistTree() { return artistTree; }
+    BPlusTree<int, Song>& getTempoTree() { return tempoTree; }
+    BPlusTree<string, Song>& getGenreTree() { return genreTree; }
+    BPlusTree<int, Song>& getPopularityTree() { return popularityTree; }
 };
 
 
