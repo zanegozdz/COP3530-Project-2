@@ -39,7 +39,7 @@ public:
 };
 
 //B+ tree
-template<typename T>
+template<typename Key, typename Value>
 class BPlusTree {
 private:
     BPlusNode<T>* root;
@@ -231,6 +231,15 @@ public:
     void print() {
         printTree(root, 0);
     }
+    BPlusTree(int ord = 32);
+    ~BPlusTree();
+
+    //search
+    void insert(int key, Value* value);
+    vector<T*> search(int key);
+    vector<T*> rangeSearch(int minKey, int maxKey);
+    void print();
+
 };
 
 #endif //PROJECT2_B_TREE_H
