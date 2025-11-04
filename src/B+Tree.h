@@ -133,47 +133,64 @@ private:
         }
     }
 
-    void searchNode(BPlusNode<K, V> *node, K key, vector<V *> &results) {
-        if (node == nullptr) return;
+    void searchNode(BPlusNode<K, V>* node, K key, vector<V*>& results) {
+        if (!node) return;
 
-        if (node->isLeaf) {
-            // Search leaf for all matching keys
-            for (size_t i = 0; i < node->keys.size(); i++) {
-                if (node->keys[i] == key) {
-                    results.push_back(node->values[i]);
+        BPlusNode<K,V>* leaf = findLeaf(node, key);
+
+        // Search through connected leaves
+        while (leaf != nullptr) {
+            for (size_t i = 0; i < leaf->keys.size(); i++) {
+                if (leaf->keys[i] == key) {
+                    results.push_back(leaf->values[i]);
                 }
             }
-        } else {
-            // search all children that might contain the key
-            for (size_t i = 0; i < node->children.size(); i++) {
-                bool mightContainKey = false;
 
-                if (i == 0) {
-                    mightContainKey = (node->keys.size() == 0 || key <= node->keys[0]);
-                } else if (i < node->keys.size()) {
-                    mightContainKey = (key >= node->keys[i-1] && key <= node->keys[i]);
-                } else {
-                    mightContainKey = (key >= node->keys[node->keys.size() - 1]);
-                }
+            // Check if go to next leaf
+            leaf = leaf->next;
+            if (leaf == nullptr || leaf->keys.empty()) {
+                break;
+            }
 
-                if (mightContainKey) {
-                    searchNode(node->children[i], key, results);
-                }
+            // If next leaf's smallest key is greater than target stop
+            if (leaf->keys[0] > key) {
+                break;
+            }
+
+            // If next leaf's largest key is less than target too far
+            if (leaf->keys.back() < key) {
+                break;
             }
         }
     }
 
-    BPlusNode<K, V> * findLeaf(BPlusNode<K, V> *node, K key) {
+
+    BPlusNode<K, V>* findLeaf(BPlusNode<K, V>* node, K key) {
         if (node->isLeaf) {
             return node;
         }
-        else {
-            int i = 0;
-            while (i < node->keys.size() && key >= node->keys[i]) {
-                i++;
+
+        // Binary search to find child index
+        int left = 0, right = node->keys.size();
+
+        // first position where key <= keys[pos]
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            if (key > node->keys[mid]) {
+                left = mid + 1;
+            } else {
+                right = mid;
             }
-            return findLeaf(node->children[i], key);
         }
+
+        int i = left;
+
+        // valid child
+        if (i >= node->children.size()) {
+            i = node->children.size() - 1;
+        }
+
+        return findLeaf(node->children[i], key);
     }
 
     void printTree(BPlusNode<K, V> *node, int level) {
@@ -208,6 +225,10 @@ public:
         root = new BPlusNode<K, V>(order, true);
     }
 
+    ~BPlusTree() {
+        delete root;
+    }
+
     void insert(K key, V *value) {
         BPlusNode<K, V> *r = root;
 
@@ -227,7 +248,7 @@ public:
         return results;
     }
 
-    vector<V *> rangeSearch(int minKey, int maxKey) {
+    vector<V *> rangeSearch(K minKey, K maxKey) {
         vector<V *> results;
         BPlusNode<K, V> *leaf = findLeaf(root, minKey);
         while (leaf != nullptr) {
