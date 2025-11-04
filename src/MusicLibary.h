@@ -15,6 +15,7 @@
 
 using namespace std;
 
+template<typename K, typename V>
 class MusicLibrary {
     unordered_map<string, vector<Song>> artistTable;
     unordered_map<string, vector<Song>> titleTable;
@@ -43,6 +44,9 @@ class MusicLibrary {
     vector<Song> songs;
     vector<string> parseCSVLine(const string& line);
     vector<Song*> songsPtrs;
+
+    vector<BPlusTree<K, V>> trees = {artistTree, titleTree, emotionTree, genreTree,
+        releaseTree, tempoTree, explicitTree, popularityTree, energyTree, danceabilityTree};
 
 public:
     string filename = "../data/new_dataset.csv";

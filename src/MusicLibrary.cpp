@@ -6,8 +6,8 @@
 #include <string>
 #include <sstream>
 using namespace std;
-
-MusicLibrary::MusicLibrary()
+template<typename K, typename V>
+MusicLibrary<K, V>::MusicLibrary()
     : artistTree(order),
       titleTree(order),
       emotionTree(order),
@@ -19,12 +19,12 @@ MusicLibrary::MusicLibrary()
       energyTree(order),
       danceabilityTree(order)
 {}
-
-void MusicLibrary::changeOrder(int ord) {
+template<typename K, typename V>
+void MusicLibrary<K, V>::changeOrder(int ord) {
     this->order = ord;
 }
-
-vector<string> MusicLibrary::parseCSVLine(const string& line) {
+template<typename K, typename V>
+vector<string> MusicLibrary<K, V>::parseCSVLine(const string& line) {
     vector<string> result;
     string field;
     bool inQuotes = false;
@@ -42,8 +42,8 @@ vector<string> MusicLibrary::parseCSVLine(const string& line) {
     result.push_back(field);
     return result;
 }
-
-void MusicLibrary::loadData() {
+template<typename K, typename V>
+void MusicLibrary<K, V>::loadData() {
     ifstream file(filename);
     if (!file.is_open()) {
         cout << "Can't open file" << filename << "\n";
@@ -83,8 +83,8 @@ void MusicLibrary::loadData() {
         danceabilityTree.insert(stoi(attr[9]), songPtr);
     }
 }
-
-void MusicLibrary::buildDS() {
+template<typename K, typename V>
+void MusicLibrary<K, V>::buildDS() {
     for (Song& song : songs) {
         artistTable[song.artist].push_back(song);
         titleTable[song.songName].push_back(song);
@@ -110,8 +110,24 @@ void MusicLibrary::buildDS() {
 
     }
 }
+template<typename K, typename V>
+vector<Song> MusicLibrary<K, V>::searchHashTable(vector<string> attr) {
 
-MusicLibrary::~MusicLibrary() {
+}
+template<typename K, typename V>
+vector<Song> MusicLibrary<K, V>::searchBPlusTree(vector<string> attr) {
+	vector<vector<Song*>> results;
+    for (int i = 0; i < attr.size(); i++) {
+        if (attr[i] != "-1") {
+			results.push_back(trees[i].search(
+        }
+    }
+}
+template<typename K, typename V>
+void MusicLibrary<K, V>::benchmarkTest(vector<string> attr) {
+}
+template<typename K, typename V>
+MusicLibrary<K, V>::~MusicLibrary() {
     for (Song* songPtr : songsPtrs) {
         delete songPtr;
     }
