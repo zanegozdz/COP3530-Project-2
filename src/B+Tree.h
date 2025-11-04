@@ -11,17 +11,17 @@
 
 using namespace std;
 
-template<typename K, typename V>
+template<typename T>
 class BPlusTree;
 
 //B+ tree node
-template<typename K, typename V>
+template<typename T>
 class BPlusNode {
 public:
     bool isLeaf;
-    vector<K> keys;
+    vector<int> keys;
     vector<BPlusNode*> children;
-    vector<V*> values;
+    vector<T*> values;
     BPlusNode* next;
     int order;
 
@@ -39,10 +39,10 @@ public:
 };
 
 //B+ tree
-template<typename K, typename V>
+template<typename T>
 class BPlusTree {
 private:
-    BPlusNode<K, V>* root;
+    BPlusNode<T>* root;
     int order;
 
     //Private helper methods
@@ -62,11 +62,11 @@ private:
     //     vector<T*> rangeSearch(int minKey, int maxKey);
     //     void print();
 
-    void splitChild(BPlusNode<K, V> *parent, int index) {
-        BPlusNode<K, V> *node = parent->children[index];
+    void splitChild(BPlusNode<T> *parent, int index) {
+        BPlusNode<T> *node = parent->children[index];
         int mid = node->keys.size() / 2;
 
-        BPlusNode<K, V> *newNode = new BPlusNode<K, V>(order, node->isLeaf);
+        BPlusNode<T> *newNode = new BPlusNode<T>(order, node->isLeaf);
 
         if (node->isLeaf) {
             newNode->keys.assign(node->keys.begin() + mid, node->keys.end());
@@ -88,7 +88,7 @@ private:
             newNode->keys.assign(node->keys.begin() + mid + 1, node->keys.end());
             newNode->children.assign(node->children.begin() + mid + 1, node->children.end());
 
-            auto midKey = node->keys[mid];
+            int midKey = node->keys[mid];
             node->keys.resize(mid);
             node->children.resize(mid + 1);
 
@@ -98,7 +98,7 @@ private:
         parent->children.insert(parent->children.begin() + index + 1, newNode);
     }
 
-    void insertNonFull(BPlusNode<K, V> *node, K key, V *value) {
+    void insertNonFull(BPlusNode<T> *node, int key, T *value) {
         if (node->isLeaf) {
             int i = node->keys.size() - 1;
             node->keys.push_back(0);
@@ -133,7 +133,7 @@ private:
         }
     }
 
-    void searchNode(BPlusNode<K, V> *node, K key, vector<V *> &results) {
+    void searchNode(BPlusNode<T> *node, int key, vector<T *> &results) {
         if (node->isLeaf) {
             for (size_t i = 0; i < node->keys.size(); i++) {
                 if (node->keys[i] == key) {
@@ -150,7 +150,7 @@ private:
         }
     }
 
-    BPlusNode<K, V> * findLeaf(BPlusNode<K, V> *node, K key) {
+    BPlusNode<T> * findLeaf(BPlusNode<T> *node, int key) {
         if (node->isLeaf) {
             return node;
         }
@@ -163,7 +163,7 @@ private:
         }
     }
 
-    void printTree(BPlusNode<K, V> *node, int level) {
+    void printTree(BPlusNode<T> *node, int level) {
         if (node == nullptr) {
             return;
         }
@@ -176,7 +176,7 @@ private:
         else {
             cout << "Internal: ";
         }
-        for (auto key : node->keys) {
+        for (int key : node->keys) {
             cout << key << " ";
         }
         cout << endl;
@@ -189,15 +189,15 @@ private:
     }
 public:
     BPlusTree(int ord = 32) : order(ord) {
-        root = new BPlusNode<K, V>(order, true);
+        root = new BPlusNode<T>(order, true);
     }
 
-    void insert(K key, V *value) {
-        BPlusNode<K, V> *r = root;
+    void insert(int key, T *value) {
+        BPlusNode<T> *r = root;
 
         //split root if full
         if (r->keys.size() >= order - 1) {
-            BPlusNode<K, V> *newRoot = new BPlusNode<K, V>(order);
+            BPlusNode<T> *newRoot = new BPlusNode<T>(order);
             newRoot->children.push_back(root);
             splitChild(newRoot, 0);
             root = newRoot;
@@ -205,15 +205,15 @@ public:
         insertNonFull(root, key, value);
     }
 
-    vector<V*> search(K key) {
-        vector<V*> results;
+    vector<T*> search(int key) {
+        vector<T*> results;
         searchNode(root, key, results);
         return results;
     }
 
-    vector<V *> rangeSearch(int minKey, int maxKey) {
-        vector<V *> results;
-        BPlusNode<K, V> *leaf = findLeaf(root, minKey);
+    vector<T *> rangeSearch(int minKey, int maxKey) {
+        vector<T *> results;
+        BPlusNode<T> *leaf = findLeaf(root, minKey);
         while (leaf != nullptr) {
             for (size_t i = 0; i < leaf->keys.size(); i++) {
                 if (leaf->keys[i] >= minKey && leaf->keys[i] <= maxKey) {
