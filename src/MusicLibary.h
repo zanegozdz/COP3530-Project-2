@@ -27,7 +27,7 @@ class MusicLibrary {
     unordered_map<int, vector<Song>> energyTable;
     unordered_map<int, vector<Song>> danceabilityTable;
 
-    int order = 4;
+    int order = 128;
     BPlusTree<string, Song> artistTree;
     BPlusTree<string, Song> titleTree;
     BPlusTree<string, Song> emotionTree;

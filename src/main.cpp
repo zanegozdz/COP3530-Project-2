@@ -64,5 +64,22 @@ int main() {
 		}
 	}
 
+	auto artistRange = lib.getArtistTree().rangeSearch("ABBA", "Queen");
+
+	if (artistRange.empty()) {
+		cout << "No songs found for artists in this range.\n";
+	} else {
+		int idx = 1;
+		for (auto* song : artistRange) {
+			cout << "Song #" << idx++ << ":\n";
+			cout << "-----------------------------------\n";
+			song->print();
+			cout << "-----------------------------------\n";
+		}
+	}
+
+	lib.getArtistTree().print();
+
+
 	return 0;
 }
