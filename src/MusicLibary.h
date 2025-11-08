@@ -12,6 +12,11 @@
 #include "B+Tree.h"
 #include <vector>
 #include <string>
+#include <sstream>
+#include <iomanip>
+#include <fstream>
+#include <chrono>
+#include <unordered_set>
 
 using namespace std;
 
@@ -44,27 +49,17 @@ class MusicLibrary {
     vector<Song> songs;
     vector<string> parseCSVLine(const string& line);
     vector<Song*> songsPtrs;
-
-    vector<BPlusTree<K, V>> trees = {
-        artistTree, titleTree, emotionTree, genreTree,
-        releaseTree, tempoTree, explicitTree, popularityTree, energyTree,
-        danceabilityTree
-    };
-
-    vector<unordered_map<K, vector<Song*>>> tables = {
-        artistTable, titleTable, emotionTable, genreTable,
-        releaseTable, tempoTable, explicitTable, popularityTable,
-        energyTable, danceabilityTable
-    };
 public:
     string filename = "../data/new_dataset.csv";
     void loadData();
     void buildDS();
-    vector<Song*> searchTable(K key);
+    // vector<Song*> searchTable(K key);
+    vector<Song*> intersectResults(vector<Song*>& a, vector<Song*>& b);
     vector<Song*> searchHashTable(vector<string> attr);
     vector<Song*> searchBPlusTree(vector<string> attr);
-    void benchmarkTest(vector<string> attr);
-    MusicLibrary();
+
+    void benchmarkTest(const vector<string>& attr);
+    MusicLibrary(int ord);
     ~MusicLibrary();
     void changeOrder(int ord);
 
@@ -74,7 +69,317 @@ public:
     BPlusTree<int, Song>& getPopularityTree() { return popularityTree; }
 };
 
+template<typename K, typename V>
+MusicLibrary<K, V>::MusicLibrary(int ord)
+    : artistTree(ord),
+      titleTree(ord),
+      emotionTree(ord),
+      genreTree(ord),
+      releaseTree(ord),
+      tempoTree(ord),
+      explicitTree(ord),
+      popularityTree(ord),
+      energyTree(ord),
+      danceabilityTree(ord) {}
+template<typename K, typename V>
+void MusicLibrary<K, V>::changeOrder(int ord) {
+    this->order = ord;
+}
+template<typename K, typename V>
+vector<string> MusicLibrary<K, V>::parseCSVLine(const string& line) {
+    vector<string> result;
+    string field;
+    bool inQuotes = false;
 
+    for (char c : line) {
+        if (c == '"') {
+            inQuotes = !inQuotes;
+        } else if (c == ',' && !inQuotes) {
+            result.push_back(field);
+            field.clear();
+        } else {
+            field += c;
+        }
+    }
+    result.push_back(field);
+    return result;
+}
+template<typename K, typename V>
+void MusicLibrary<K, V>::loadData() {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "Error reading file" << filename << "\n";
+        return;
+    }
+
+    string header;
+    getline(file, header); // skip header line
+
+    string line;
+    while (getline(file, line)) {
+        vector<string> attr;
+        stringstream ss(line);
+        string attribute;
+
+        attr = parseCSVLine(line);
+
+        if (attr.size() < 10) continue;
+
+        Song* songPtr = new Song(attr[0], attr[1], attr[2], attr[3],
+                         stoi(attr[4]), stoi(attr[5]), attr[6],
+                         stoi(attr[7]), stoi(attr[8]), stoi(attr[9]));
+
+        // store pointer in a separate vector for lifetime management
+        songsPtrs.push_back(songPtr);
+
+        // insert into B+ trees
+        // artistTree.insert(attr[0], songPtr);
+        // titleTree.insert(attr[1], songPtr);
+        // emotionTree.insert(attr[2], songPtr);
+        // genreTree.insert(attr[3], songPtr);
+        // releaseTree.insert(stoi(attr[4]), songPtr);
+        // tempoTree.insert(stoi(attr[5]), songPtr);
+        // explicitTree.insert(attr[6], songPtr);
+        // popularityTree.insert(stoi(attr[7]), songPtr);
+        // energyTree.insert(stoi(attr[8]), songPtr);
+        // danceabilityTree.insert(stoi(attr[9]), songPtr);
+    }
+}
+template<typename K, typename V>
+void MusicLibrary<K, V>::buildDS() {
+    for (Song* song : songsPtrs) {
+        artistTable[song->artist].push_back(song);
+        titleTable[song->songName].push_back(song);
+        emotionTable[song->emotion].push_back(song);
+        genreTable[song->genre].push_back(song);
+        releaseTable[song->releaseDate].push_back(song);
+        tempoTable[song->tempo].push_back(song);
+        explicitTable[song->explicit_].push_back(song);
+        popularityTable[song->popularity].push_back(song);
+        energyTable[song->energy].push_back(song);
+        danceabilityTable[song->danceability].push_back(song);
+
+        artistTree.insert(song->artist, song);
+        titleTree.insert(song->songName, song);
+        emotionTree.insert(song->emotion, song);
+        genreTree.insert(song->genre, song);
+        releaseTree.insert(song->releaseDate, song);
+        tempoTree.insert(song->tempo, song);
+        explicitTree.insert(song->explicit_, song);
+        popularityTree.insert(song->popularity, song);
+        energyTree.insert(song->energy, song);
+        danceabilityTree.insert(song->danceability,song);
+
+    }
+}
+
+template<typename K, typename V>
+vector<Song*> MusicLibrary<K, V>::intersectResults(vector<Song*>& a, vector<Song*>& b) {
+    vector<Song*> result;
+    unordered_set<Song*> aSet(a.begin(), a.end());
+    unordered_set<Song*> bSet(b.begin(), b.end());
+    for (Song* song : aSet) {
+        if (bSet.count(song) > 0) {
+            result.push_back(song);
+        }
+    }
+    return result;
+}
+
+template<typename K, typename V>
+vector<Song*> MusicLibrary<K, V>::searchHashTable(vector<string> attr) {
+    vector<vector<Song*>> results;
+    for (size_t i = 0; i < attr.size(); i++) {
+        if (attr[i] != "-1") {
+            if (i == 0) {
+                auto it = artistTable.find(attr[i]);
+                if (it != artistTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+            else if (i == 1) {
+                auto it = titleTable.find(attr[i]);
+                if (it != titleTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+            else if (i == 2) {
+                auto it = emotionTable.find(attr[i]);
+                if (it != emotionTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+            else if (i == 3) {
+                auto it = genreTable.find(attr[i]);
+                if (it != genreTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+            else if (i == 4) {
+                auto it = releaseTable.find(stoi(attr[i]));
+                if (it != releaseTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+            else if (i == 5) {
+                auto it = tempoTable.find(stoi(attr[i]));
+                if (it != tempoTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+            else if (i == 6) {
+                auto it = explicitTable.find(attr[i]);
+                if (it != explicitTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+            else if (i == 7) {
+                auto it = popularityTable.find(stoi(attr[i]));
+                if (it != popularityTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+            else if (i == 8) {
+                auto it = energyTable.find(stoi(attr[i]));
+                if (it != energyTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+            else if (i == 9) {
+                auto it = danceabilityTable.find(stoi(attr[i]));
+                if (it != danceabilityTable.end()) {
+                    results.push_back(it->second);
+                }
+            }
+        }
+    }
+
+    if (results.empty()) {
+        return {};
+    }
+    if (results.size() == 1) {
+        return results[0];
+    }
+
+    vector<Song*> intersection(results[0].begin(), results[0].end());
+
+    for (size_t i = 1; i < results.size(); i++) {
+        if (intersection.empty()) {
+            break;
+        }
+        intersection = intersectResults(intersection, results[i]);
+    }
+    return intersection;
+}
+
+template<typename K, typename V>
+vector<Song*> MusicLibrary<K, V>::searchBPlusTree(vector<string> attr) {
+	vector<vector<Song*>> results;
+    for (size_t i = 0; i < attr.size(); i++) {
+        if (attr[i] != "-1") {
+            if (i == 0) {
+                results.push_back(artistTree.search(attr[i]));
+            }
+            else if (i == 1) {
+                results.push_back(titleTree.search(attr[i]));
+            }
+            else if (i == 2) {
+                results.push_back(emotionTree.search(attr[i]));
+            }
+            else if (i == 3) {
+                results.push_back(genreTree.search(attr[i]));
+            }
+            else if (i == 4) {
+                results.push_back(releaseTree.search(stoi(attr[i])));
+            }
+            else if (i == 5) {
+                results.push_back(tempoTree.search(stoi(attr[i])));
+            }
+            else if (i == 6) {
+                results.push_back(explicitTree.search(attr[i]));
+            }
+            else if (i == 7) {
+                results.push_back(popularityTree.search(stoi(attr[i])));
+            }
+            else if (i == 8) {
+                results.push_back(energyTree.search(stoi(attr[i])));
+            }
+            else if (i == 9) {
+                results.push_back(danceabilityTree.search(stoi(attr[i])));
+            }
+        }
+    }
+    if (results.empty()) {
+        return {};
+    }
+    if (results.size() == 1) {
+        return results[0];
+    }
+
+    vector<Song*> intersection(results[0].begin(), results[0].end());
+
+    for (size_t i = 1; i < results.size(); i++) {
+        if (intersection.empty()) {
+            break;
+        }
+        intersection = intersectResults(intersection, results[i]);
+    }
+    return intersection;
+}
+
+template<typename K, typename V>
+void MusicLibrary<K, V>::benchmarkTest(const vector<string>& attr) {
+    const int total_runs = 100;
+
+    cout << "\nBENCHMARK TEST" << endl;
+
+    auto startHash = chrono::high_resolution_clock::now();
+    vector<Song*> resultsHash;
+    for (int i = 0; i < total_runs; i++) {
+        resultsHash = searchHashTable(attr);
+    }
+    auto endHash = chrono::high_resolution_clock::now();
+    auto durationHash = chrono::duration_cast<chrono::milliseconds>(endHash - startHash);
+    long long avgHash = durationHash.count() / static_cast<long long>(total_runs);
+
+    auto startTree = chrono::high_resolution_clock::now();
+    vector<Song*> resultsTree;
+    for (int i = 0; i < total_runs; i++) {
+        resultsTree = searchBPlusTree(attr);
+    }
+    auto endTree = chrono::high_resolution_clock::now();
+    auto durationTree = chrono::duration_cast<chrono::milliseconds>(endTree - startTree);
+    long long avgTree = durationTree.count() / static_cast<long long>(total_runs);
+
+    cout << "HASH TABLE:" << endl;
+    cout << "\tTotal time: " << durationHash.count() << " ms" << endl;
+    cout << "\tAverage time: " << avgHash << " ms" << endl;
+    cout << "\tResults found: " << resultsHash.size() << endl;
+
+    cout << "\nB+ TREE:" << endl;
+    cout << "\tTotal time: " << durationTree.count() << " ms" << endl;
+    cout << "\tAverage time: " << avgHash << " ms" << endl;
+    cout << "\tResults found: " << resultsTree.size() << endl;
+
+    if (avgHash > avgTree) {
+        long long speedup = avgHash / avgTree;
+        cout << "B+ Tree is " << fixed << setprecision(2) << speedup << "x FASTER" << endl;
+    }
+    else {
+        long long speedup = avgTree / avgHash;
+        cout << "Hash Table is " << fixed << setprecision(2) << speedup << "x FASTER" << endl;
+    }
+
+    if (resultsHash.size() != resultsTree.size()) {
+        cout << "\nWARNING: Results do not match!" << endl;
+    }
+}
+template<typename K, typename V>
+MusicLibrary<K, V>::~MusicLibrary() {
+    for (Song* songPtr : songsPtrs) {
+        delete songPtr;
+    }
+}
 
 
 #endif //PROJECT1_TUNETREE_H

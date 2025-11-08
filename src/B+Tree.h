@@ -101,7 +101,7 @@ private:
     void insertNonFull(BPlusNode<K, V> *node, K key, V *value) {
         if (node->isLeaf) {
             // Find insertion position
-            int i = 0;
+            size_t i = 0;
             while (i < node->keys.size() && key > node->keys[i]) {
                 i++;
             }
@@ -111,7 +111,7 @@ private:
             node->values.insert(node->values.begin() + i, value);
         } else {
             // Find child to insert into
-            int i = 0;
+            size_t i = 0;
             while (i < node->keys.size() && key >= node->keys[i]) {
                 i++;
             }
@@ -122,7 +122,7 @@ private:
             }
 
             // Split child if full
-            if (node->children[i]->keys.size() >= order - 1) {
+            if (node->children[i]->keys.size() >= static_cast<size_t>(order - 1)) {
                 splitChild(node, i);
                 if (key > node->keys[i]) {
                     i++;
@@ -183,7 +183,7 @@ private:
             }
         }
 
-        int i = left;
+        size_t i = left;
 
         // valid child
         if (i >= node->children.size()) {
@@ -233,7 +233,7 @@ public:
         BPlusNode<K, V> *r = root;
 
         //split root if full
-        if (r->keys.size() >= order - 1) {
+        if (r->keys.size() >= static_cast<size_t>(order - 1)) {
             BPlusNode<K, V> *newRoot = new BPlusNode<K, V>(order);
             newRoot->children.push_back(root);
             splitChild(newRoot, 0);
