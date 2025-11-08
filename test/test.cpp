@@ -3,9 +3,28 @@
 #include <vector>
 #include <string>
 
+using namespace std;
+
+#include "B+Tree.h"
 #include "TestData.h"
 
-using namespace std;
+TEST_CASE("B+ Tree Real - Insert") {
+    BPlusTree<int, string> tree(4);
+    string data1 = "First";
+    string data2 = "Second";
+    string data3 = "Third";
+    string data4 = "Fourth";
+    string data5 = "Fifth";
+
+    SECTION("Insert Single Element") {
+        tree.insert(10, &data1);
+        auto result = tree.search(10);
+        REQUIRE(result.size() == 1);
+        REQUIRE(result[0] == &data1);
+    }
+
+}
+
 
 TEST_CASE("Insert - Single Element", "[insert]") {
     TestBPlusTree tree(4);

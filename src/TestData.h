@@ -50,10 +50,10 @@ public:
 
 
 // TestBPlusNode Implementation
-TestBPlusNode::TestBPlusNode(int ord, bool leaf)
+inline TestBPlusNode::TestBPlusNode(int ord, bool leaf)
     : isLeaf(leaf), next(nullptr), order(ord) {}
 
-TestBPlusNode::~TestBPlusNode() {
+inline TestBPlusNode::~TestBPlusNode() {
     if (!isLeaf) {
         for (auto child : children) {
             delete child;
@@ -62,15 +62,15 @@ TestBPlusNode::~TestBPlusNode() {
 }
 
 // TestBPlusTree Implementation
-TestBPlusTree::TestBPlusTree(int ord) : order(ord) {
+inline TestBPlusTree::TestBPlusTree(int ord) : order(ord) {
     root = new TestBPlusNode(order, true);
 }
 
-TestBPlusTree::~TestBPlusTree() {
+inline TestBPlusTree::~TestBPlusTree() {
     delete root;
 }
 
-void TestBPlusTree::splitChild(TestBPlusNode* parent, int index) {
+inline void TestBPlusTree::splitChild(TestBPlusNode* parent, int index) {
     TestBPlusNode* node = parent->children[index];
     int mid = node->keys.size() / 2;
 
@@ -101,7 +101,7 @@ void TestBPlusTree::splitChild(TestBPlusNode* parent, int index) {
     parent->children.insert(parent->children.begin() + index + 1, newNode);
 }
 
-void TestBPlusTree::insertNonFull(TestBPlusNode* node, int key, TestData* value) {
+inline void TestBPlusTree::insertNonFull(TestBPlusNode* node, int key, TestData* value) {
     if (node->isLeaf) {
         int i = node->keys.size() - 1;
         node->keys.push_back(0);
@@ -133,7 +133,7 @@ void TestBPlusTree::insertNonFull(TestBPlusNode* node, int key, TestData* value)
     }
 }
 
-void TestBPlusTree::insert(int key, TestData* value) {
+inline void TestBPlusTree::insert(int key, TestData* value) {
     TestBPlusNode* r = root;
 
     if (r->keys.size() >= order - 1) {
@@ -146,7 +146,7 @@ void TestBPlusTree::insert(int key, TestData* value) {
     insertNonFull(root, key, value);
 }
 
-void TestBPlusTree::searchNode(TestBPlusNode* node, int key, std::vector<TestData*>& results) {
+inline void TestBPlusTree::searchNode(TestBPlusNode* node, int key, std::vector<TestData*>& results) {
     if (node->isLeaf) {
         for (size_t i = 0; i < node->keys.size(); i++) {
             if (node->keys[i] == key) {
@@ -162,13 +162,13 @@ void TestBPlusTree::searchNode(TestBPlusNode* node, int key, std::vector<TestDat
     }
 }
 
-std::vector<TestData*> TestBPlusTree::search(int key) {
+inline std::vector<TestData*> TestBPlusTree::search(int key) {
     std::vector<TestData*> results;
     searchNode(root, key, results);
     return results;
 }
 
-TestBPlusNode* TestBPlusTree::findLeaf(TestBPlusNode* node, int key) {
+inline TestBPlusNode* TestBPlusTree::findLeaf(TestBPlusNode* node, int key) {
     if (node->isLeaf) return node;
 
     int i = 0;
@@ -178,7 +178,7 @@ TestBPlusNode* TestBPlusTree::findLeaf(TestBPlusNode* node, int key) {
     return findLeaf(node->children[i], key);
 }
 
-std::vector<TestData*> TestBPlusTree::rangeSearch(int minKey, int maxKey) {
+inline std::vector<TestData*> TestBPlusTree::rangeSearch(int minKey, int maxKey) {
     std::vector<TestData*> results;
     TestBPlusNode* leaf = findLeaf(root, minKey);
 
