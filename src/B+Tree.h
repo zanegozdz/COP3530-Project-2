@@ -21,7 +21,7 @@ public:
     bool isLeaf;
     vector<K> keys;
     vector<BPlusNode*> children;
-    vector<V*> values;
+    vector<vector<V*>> values;
     BPlusNode* next;
     int order;
 
@@ -83,17 +83,22 @@ private:
     void insertNonFull(BPlusNode<K, V> *node, K key, V *value) {
         if (node->isLeaf) {
             // Find insertion position
-            int i = 0;
+            size_t i = 0;
             while (i < node->keys.size() && key > node->keys[i]) {
                 i++;
             }
 
-            // Insert at position i
-            node->keys.insert(node->keys.begin() + i, key);
-            node->values.insert(node->values.begin() + i, value);
+            if (i < node->keys.size() && node->keys[i] == key) {
+                node->values[i].push_back(value);
+            }
+            else {
+                // Insert at position i
+                node->keys.insert(node->keys.begin() + i, key);
+                node->values.insert(node->values.begin() + i, vector<V*>{value});
+            }
         } else {
             // Find child to insert into
-            int i = 0;
+            size_t i = 0;
             while (i < node->keys.size() && key >= node->keys[i]) {
                 i++;
             }
@@ -104,7 +109,7 @@ private:
             }
 
             // Split child if full
-            if (node->children[i]->keys.size() >= order - 1) {
+            if (node->children[i]->keys.size() >= static_cast<size_t>(order - 1)) {
                 splitChild(node, i);
                 if (key > node->keys[i]) {
                     i++;
@@ -124,25 +129,30 @@ private:
         while (leaf != nullptr) {
             for (size_t i = 0; i < leaf->keys.size(); i++) {
                 if (leaf->keys[i] == key) {
-                    results.push_back(leaf->values[i]);
+                    const vector<V*>& valueVec = leaf->values[i];
+                    results.insert(results.end(), valueVec.begin(), valueVec.end());
+                    return;
+                }
+                else if (leaf->keys[i] > key) {
+                    return;
                 }
             }
 
-            // Check if go to next leaf
-            leaf = leaf->next;
-            if (leaf == nullptr || leaf->keys.empty()) {
-                break;
-            }
-
-            // If next leaf's smallest key is greater than target stop
-            if (leaf->keys[0] > key) {
-                break;
-            }
-
-            // If next leaf's largest key is less than target too far
-            if (leaf->keys.back() < key) {
-                break;
-            }
+            // // Check if go to next leaf
+            // leaf = leaf->next;
+            // if (leaf == nullptr || leaf->keys.empty()) {
+            //     break;
+            // }
+            //
+            // // If next leaf's smallest key is greater than target stop
+            // if (leaf->keys[0] > key) {
+            //     break;
+            // }
+            //
+            // // If next leaf's largest key is less than target too far
+            // if (leaf->keys.back() < key) {
+            //     break;
+            // }
         }
     }
 
@@ -165,7 +175,7 @@ private:
             }
         }
 
-        int i = left;
+        size_t i = left;
 
         // valid child
         if (i >= node->children.size()) {
@@ -215,7 +225,7 @@ public:
         BPlusNode<K, V> *r = root;
 
         //split root if full
-        if (r->keys.size() >= order - 1) {
+        if (r->keys.size() >= static_cast<size_t>(order - 1)) {
             BPlusNode<K, V> *newRoot = new BPlusNode<K, V>(order);
             newRoot->children.push_back(root);
             splitChild(newRoot, 0);
@@ -230,13 +240,15 @@ public:
         return results;
     }
 
-    vector<V *> rangeSearch(K minKey, K maxKey) {
-        vector<V *> results;
+    vector<V*> rangeSearch(K minKey, K maxKey) {
+        vector<V*> results;
         BPlusNode<K, V> *leaf = findLeaf(root, minKey);
         while (leaf != nullptr) {
             for (size_t i = 0; i < leaf->keys.size(); i++) {
                 if (leaf->keys[i] >= minKey && leaf->keys[i] <= maxKey) {
-                    results.push_back(leaf->values[i]);
+                    for (V* value : leaf->values[i]) {
+                        results.push_back(value);
+                    }
                 }
                 else if (leaf->keys[i] > maxKey) {
                     return results;
