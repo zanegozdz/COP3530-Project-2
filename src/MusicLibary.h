@@ -61,7 +61,7 @@ public:
     vector<Song*> rangeSearchBPlusTree(int val, string low, string high);
 
     vector<Song*> benchmarkTest(const vector<string>& attr);
-    vector<Song*> rangeSearchBenchmark(const vector<string>& attr);
+    vector<Song*> rangeSearchBenchmark(int attrIndex, string low, string high);
     MusicLibrary(int ord);
     ~MusicLibrary();
     void changeOrder(int ord);
@@ -430,26 +430,36 @@ vector<Song*> MusicLibrary<K, V>::rangeSearchHashTable(int val, string low, stri
 template<typename K, typename V>
 vector<Song*> MusicLibrary<K, V>::rangeSearchBPlusTree(int val, string low, string high) {
     if (val == 0) {
-        artistTree.rangeSearch(low, high);
+         return artistTree.rangeSearch(low, high);
     }
     else if (val == 1) {
-        titleTree.rangeSearch(low, high);
+        return titleTree.rangeSearch(low, high);
     }
     else if (val == 2) {
-        emotionTree.rangeSearch(low, high);
+        return emotionTree.rangeSearch(low, high);
     }
     else if (val == 3) {
-        genreTree.rangeSearch(low, high);
+        return genreTree.rangeSearch(low, high);
     }
     else if (val == 4) {
-        releaseTree.rangeSearch(stoi(low), stoi(high));
+        return releaseTree.rangeSearch(stoi(low), stoi(high));
     }
     else if (val == 5) {
-        tempoTree.rangeSearch(stoi(low), stoi(high));
+        return tempoTree.rangeSearch(stoi(low), stoi(high));
     }
     else if (val == 6) {
-        explicitTree.rangeSearch(stoi(low), stoi(high));
+        return explicitTree.rangeSearch(low, high);
     }
+    else if (val == 7) {
+        return popularityTree.rangeSearch(stoi(low), stoi(high));
+    }
+    else if (val == 8) {
+        return energyTree.rangeSearch(stoi(low), stoi(high));
+    }
+    else if (val == 9) {
+        return danceabilityTree.rangeSearch(stoi(low), stoi(high));
+    }
+    return {};
 }
 
 template<typename K, typename V>
@@ -505,7 +515,7 @@ vector<Song*> MusicLibrary<K, V>::benchmarkTest(const vector<string>& attr) {
 }
 
 template<typename K, typename V>
-vector<Song *> MusicLibrary<K, V>::rangeSearchBenchmark(const vector<string> &attr) {
+vector<Song*> MusicLibrary<K, V>::rangeSearchBenchmark(int attrIndex, string low, string high) {
     const int total_runs = 100;
 
     cout << "\n========= BENCHMARK TEST =========\n" << endl;
@@ -513,7 +523,7 @@ vector<Song *> MusicLibrary<K, V>::rangeSearchBenchmark(const vector<string> &at
     auto startHash = chrono::high_resolution_clock::now();
     vector<Song*> resultsHash;
     for (int i = 0; i < total_runs; i++) {
-        resultsHash = rangeSearchHashTable(attr);
+        resultsHash = rangeSearchHashTable(attrIndex, low, high);
     }
     auto endHash = chrono::high_resolution_clock::now();
     auto durationHash = chrono::duration_cast<chrono::nanoseconds>(endHash - startHash);
@@ -522,7 +532,7 @@ vector<Song *> MusicLibrary<K, V>::rangeSearchBenchmark(const vector<string> &at
     auto startTree = chrono::high_resolution_clock::now();
     vector<Song*> resultsTree;
     for (int i = 0; i < total_runs; i++) {
-        resultsTree = searchBPlusTree(attr);
+        resultsTree = rangeSearchBPlusTree(attrIndex, low, high);
     }
     auto endTree = chrono::high_resolution_clock::now();
     auto durationTree = chrono::duration_cast<chrono::nanoseconds>(endTree - startTree);

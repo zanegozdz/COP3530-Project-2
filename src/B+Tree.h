@@ -258,13 +258,15 @@ public:
         return results;
     }
 
-    vector<V *> rangeSearch(K minKey, K maxKey) {
-        vector<V *> results;
+    vector<V*> rangeSearch(K minKey, K maxKey) {
+        vector<V*> results;
         BPlusNode<K, V> *leaf = findLeaf(root, minKey);
         while (leaf != nullptr) {
             for (size_t i = 0; i < leaf->keys.size(); i++) {
                 if (leaf->keys[i] >= minKey && leaf->keys[i] <= maxKey) {
-                    results.push_back(leaf->values[i]);
+                    for (V* value : leaf->values[i]) {
+                        results.push_back(value);
+                    }
                 }
                 else if (leaf->keys[i] > maxKey) {
                     return results;

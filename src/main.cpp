@@ -144,7 +144,7 @@ int main() {
 
 			printResults(results);
 		}
-		if (opt == 2) {
+		else if (opt == 2) {
 			cout << "\n========== RANGE SEARCH ==========\n";
 			cout << "(if the value is none, click enter)\n\n";
 			cout << "Pick an option:" << endl;
@@ -165,8 +165,11 @@ int main() {
 			cin >> maxVal;
 			cout << "Enter minimum value: ";
 			cin >> minVal;
-
-			printResults(lib.rangeSearchHashTable(ch - 1, minVal, maxVal));
+			vector<Song*> results = lib.rangeSearchBenchmark(ch-1, maxVal, minVal);
+			printResults(results);
+		}
+		else if (option == 3) {
+			return 1;
 		}
 		cout << "============== MENU ==============\n\n";
 		cout << "1. Filtered Search" << endl;
