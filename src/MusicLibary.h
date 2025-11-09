@@ -464,7 +464,7 @@ vector<Song*> MusicLibrary<K, V>::rangeSearchBPlusTree(int val, string low, stri
 
 template<typename K, typename V>
 vector<Song*> MusicLibrary<K, V>::benchmarkTest(const vector<string>& attr) {
-    const int total_runs = 100;
+    const int total_runs = 1;
 
     cout << "\n========= BENCHMARK TEST =========\n" << endl;
 
@@ -493,7 +493,7 @@ vector<Song*> MusicLibrary<K, V>::benchmarkTest(const vector<string>& attr) {
 
     cout << "\nB+ TREE:" << endl;
     cout << "\tTotal time: " << durationTree.count() << " ns" << endl;
-    cout << "\tAverage time: " << avgHash << " ns" << endl;
+    cout << "\tAverage time: " << avgTree << " ns" << endl;
     cout << "\tResults found: " << resultsTree.size() << endl;
 
     if (resultsHash.size() != resultsTree.size()) {
@@ -502,12 +502,12 @@ vector<Song*> MusicLibrary<K, V>::benchmarkTest(const vector<string>& attr) {
 
     if (avgHash > avgTree) {
         double speedup = durationHash / durationTree;
-        cout << "B+ Tree is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
+        cout << "\nB+ Tree is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
         return resultsTree;
     }
     else {
         double speedup = durationTree / durationHash;
-        cout << "Hash Table is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
+        cout << "\nHash Table is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
         return resultsHash;
     }
 
@@ -545,7 +545,7 @@ vector<Song*> MusicLibrary<K, V>::rangeSearchBenchmark(int attrIndex, string low
 
     cout << "\nB+ TREE:" << endl;
     cout << "\tTotal time: " << durationTree.count() << " ns" << endl;
-    cout << "\tAverage time: " << avgHash << " ns" << endl;
+    cout << "\tAverage time: " << avgTree << " ns" << endl;
     cout << "\tResults found: " << resultsTree.size() << endl;
 
     if (resultsHash.size() != resultsTree.size()) {
@@ -554,12 +554,12 @@ vector<Song*> MusicLibrary<K, V>::rangeSearchBenchmark(int attrIndex, string low
 
     if (avgHash > avgTree) {
         double speedup = durationHash / durationTree;
-        cout << "B+ Tree is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
+        cout << "\nB+ Tree is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
         return resultsTree;
     }
     else {
         double speedup = durationTree / durationHash;
-        cout << "Hash Table is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
+        cout << "\nHash Table is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
         return resultsHash;
     }
 }
