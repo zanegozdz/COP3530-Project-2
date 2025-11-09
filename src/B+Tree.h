@@ -21,7 +21,7 @@ public:
     bool isLeaf;
     vector<K> keys;
     vector<BPlusNode*> children;
-    vector<V*> values;
+    vector<vector<V*>> values;
     BPlusNode* next;
     int order;
 
@@ -106,9 +106,14 @@ private:
                 i++;
             }
 
-            // Insert at position i
-            node->keys.insert(node->keys.begin() + i, key);
-            node->values.insert(node->values.begin() + i, value);
+            if (i < node->keys.size() && node->keys[i] == key) {
+                node->values[i].push_back(value);
+            }
+            else {
+                // Insert at position i
+                node->keys.insert(node->keys.begin() + i, key);
+                node->values.insert(node->values.begin() + i, vector<V*>{value});
+            }
         } else {
             // Find child to insert into
             size_t i = 0;
@@ -142,25 +147,30 @@ private:
         while (leaf != nullptr) {
             for (size_t i = 0; i < leaf->keys.size(); i++) {
                 if (leaf->keys[i] == key) {
-                    results.push_back(leaf->values[i]);
+                    const vector<V*>& valueVec = leaf->values[i];
+                    results.insert(results.end(), valueVec.begin(), valueVec.end());
+                    return;
+                }
+                else if (leaf->keys[i] > key) {
+                    return;
                 }
             }
 
-            // Check if go to next leaf
-            leaf = leaf->next;
-            if (leaf == nullptr || leaf->keys.empty()) {
-                break;
-            }
-
-            // If next leaf's smallest key is greater than target stop
-            if (leaf->keys[0] > key) {
-                break;
-            }
-
-            // If next leaf's largest key is less than target too far
-            if (leaf->keys.back() < key) {
-                break;
-            }
+            // // Check if go to next leaf
+            // leaf = leaf->next;
+            // if (leaf == nullptr || leaf->keys.empty()) {
+            //     break;
+            // }
+            //
+            // // If next leaf's smallest key is greater than target stop
+            // if (leaf->keys[0] > key) {
+            //     break;
+            // }
+            //
+            // // If next leaf's largest key is less than target too far
+            // if (leaf->keys.back() < key) {
+            //     break;
+            // }
         }
     }
 

@@ -57,8 +57,11 @@ public:
     vector<Song*> intersectResults(vector<Song*>& a, vector<Song*>& b);
     vector<Song*> searchHashTable(vector<string> attr);
     vector<Song*> searchBPlusTree(vector<string> attr);
+    vector<Song*> rangeSearchHashTable(int val, string low, string high);
+    vector<Song*> rangeSearchBPlusTree(int val, string low, string high);
 
-    void benchmarkTest(const vector<string>& attr);
+    vector<Song*> benchmarkTest(const vector<string>& attr);
+    vector<Song*> rangeSearchBenchmark(const vector<string>& attr);
     MusicLibrary(int ord);
     ~MusicLibrary();
     void changeOrder(int ord);
@@ -328,10 +331,132 @@ vector<Song*> MusicLibrary<K, V>::searchBPlusTree(vector<string> attr) {
 }
 
 template<typename K, typename V>
-void MusicLibrary<K, V>::benchmarkTest(const vector<string>& attr) {
+vector<Song*> MusicLibrary<K, V>::rangeSearchHashTable(int val, string low, string high) {
+    vector<Song*> result;
+
+    if (val == 0) {
+        for (auto& pair : artistTable) {
+            if (pair.first >= low && pair.first <= high) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    else if (val == 1) {
+        for (auto& pair : titleTable) {
+            if (pair.first >= low && pair.first <= high) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    else if (val == 2) {
+        for (auto& pair : emotionTable) {
+            if (pair.first >= low && pair.first <= high) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    else if (val == 3) {
+        for (auto& pair : genreTable) {
+            if (pair.first >= low && pair.first <= high) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    else if (val == 4) {
+        for (auto& pair : releaseTable) {
+            if (pair.first >= stoi(low) && pair.first <= stoi(high)) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    else if (val == 5) {
+        for (auto& pair : tempoTable) {
+            if (pair.first >= stoi(low) && pair.first <= stoi(high)) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    else if (val == 6) {
+        for (auto& pair : explicitTable) {
+            if (pair.first >= low && pair.first <= high) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    else if (val == 7) {
+        for (auto& pair : popularityTable) {
+            if (pair.first >= stoi(low) && pair.first <= stoi(high)) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    else if (val == 8) {
+        for (auto& pair : energyTable) {
+            if (pair.first >= stoi(low) && pair.first <= stoi(high)) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    else if (val == 9) {
+        for (auto& pair : danceabilityTable) {
+            if (pair.first >= stoi(low) && pair.first <= stoi(high)) {
+                for (Song* song : pair.second) {
+                    result.push_back(song);
+                }
+            }
+        }
+    }
+    return result;
+}
+
+template<typename K, typename V>
+vector<Song*> MusicLibrary<K, V>::rangeSearchBPlusTree(int val, string low, string high) {
+    if (val == 0) {
+        artistTree.rangeSearch(low, high);
+    }
+    else if (val == 1) {
+        titleTree.rangeSearch(low, high);
+    }
+    else if (val == 2) {
+        emotionTree.rangeSearch(low, high);
+    }
+    else if (val == 3) {
+        genreTree.rangeSearch(low, high);
+    }
+    else if (val == 4) {
+        releaseTree.rangeSearch(stoi(low), stoi(high));
+    }
+    else if (val == 5) {
+        tempoTree.rangeSearch(stoi(low), stoi(high));
+    }
+    else if (val == 6) {
+        explicitTree.rangeSearch(stoi(low), stoi(high));
+    }
+}
+
+template<typename K, typename V>
+vector<Song*> MusicLibrary<K, V>::benchmarkTest(const vector<string>& attr) {
     const int total_runs = 100;
 
-    cout << "\nBENCHMARK TEST" << endl;
+    cout << "\n========= BENCHMARK TEST =========\n" << endl;
 
     auto startHash = chrono::high_resolution_clock::now();
     vector<Song*> resultsHash;
@@ -339,7 +464,7 @@ void MusicLibrary<K, V>::benchmarkTest(const vector<string>& attr) {
         resultsHash = searchHashTable(attr);
     }
     auto endHash = chrono::high_resolution_clock::now();
-    auto durationHash = chrono::duration_cast<chrono::milliseconds>(endHash - startHash);
+    auto durationHash = chrono::duration_cast<chrono::nanoseconds>(endHash - startHash);
     long long avgHash = durationHash.count() / static_cast<long long>(total_runs);
 
     auto startTree = chrono::high_resolution_clock::now();
@@ -348,32 +473,87 @@ void MusicLibrary<K, V>::benchmarkTest(const vector<string>& attr) {
         resultsTree = searchBPlusTree(attr);
     }
     auto endTree = chrono::high_resolution_clock::now();
-    auto durationTree = chrono::duration_cast<chrono::milliseconds>(endTree - startTree);
+    auto durationTree = chrono::duration_cast<chrono::nanoseconds>(endTree - startTree);
     long long avgTree = durationTree.count() / static_cast<long long>(total_runs);
 
     cout << "HASH TABLE:" << endl;
-    cout << "\tTotal time: " << durationHash.count() << " ms" << endl;
-    cout << "\tAverage time: " << avgHash << " ms" << endl;
+    cout << "\tTotal time: " << durationHash.count() << " ns" << endl;
+    cout << "\tAverage time: " << avgHash << " ns" << endl;
     cout << "\tResults found: " << resultsHash.size() << endl;
 
     cout << "\nB+ TREE:" << endl;
-    cout << "\tTotal time: " << durationTree.count() << " ms" << endl;
-    cout << "\tAverage time: " << avgHash << " ms" << endl;
+    cout << "\tTotal time: " << durationTree.count() << " ns" << endl;
+    cout << "\tAverage time: " << avgHash << " ns" << endl;
     cout << "\tResults found: " << resultsTree.size() << endl;
-
-    if (avgHash > avgTree) {
-        long long speedup = avgHash / avgTree;
-        cout << "B+ Tree is " << fixed << setprecision(2) << speedup << "x FASTER" << endl;
-    }
-    else {
-        long long speedup = avgTree / avgHash;
-        cout << "Hash Table is " << fixed << setprecision(2) << speedup << "x FASTER" << endl;
-    }
 
     if (resultsHash.size() != resultsTree.size()) {
         cout << "\nWARNING: Results do not match!" << endl;
     }
+
+    if (avgHash > avgTree) {
+        double speedup = durationHash / durationTree;
+        cout << "B+ Tree is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
+        return resultsTree;
+    }
+    else {
+        double speedup = durationTree / durationHash;
+        cout << "Hash Table is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
+        return resultsHash;
+    }
+
+
 }
+
+template<typename K, typename V>
+vector<Song *> MusicLibrary<K, V>::rangeSearchBenchmark(const vector<string> &attr) {
+    const int total_runs = 100;
+
+    cout << "\n========= BENCHMARK TEST =========\n" << endl;
+
+    auto startHash = chrono::high_resolution_clock::now();
+    vector<Song*> resultsHash;
+    for (int i = 0; i < total_runs; i++) {
+        resultsHash = rangeSearchHashTable(attr);
+    }
+    auto endHash = chrono::high_resolution_clock::now();
+    auto durationHash = chrono::duration_cast<chrono::nanoseconds>(endHash - startHash);
+    long long avgHash = durationHash.count() / static_cast<long long>(total_runs);
+
+    auto startTree = chrono::high_resolution_clock::now();
+    vector<Song*> resultsTree;
+    for (int i = 0; i < total_runs; i++) {
+        resultsTree = searchBPlusTree(attr);
+    }
+    auto endTree = chrono::high_resolution_clock::now();
+    auto durationTree = chrono::duration_cast<chrono::nanoseconds>(endTree - startTree);
+    long long avgTree = durationTree.count() / static_cast<long long>(total_runs);
+
+    cout << "HASH TABLE:" << endl;
+    cout << "\tTotal time: " << durationHash.count() << " ns" << endl;
+    cout << "\tAverage time: " << avgHash << " ns" << endl;
+    cout << "\tResults found: " << resultsHash.size() << endl;
+
+    cout << "\nB+ TREE:" << endl;
+    cout << "\tTotal time: " << durationTree.count() << " ns" << endl;
+    cout << "\tAverage time: " << avgHash << " ns" << endl;
+    cout << "\tResults found: " << resultsTree.size() << endl;
+
+    if (resultsHash.size() != resultsTree.size()) {
+        cout << "\nWARNING: Results do not match!" << endl;
+    }
+
+    if (avgHash > avgTree) {
+        double speedup = durationHash / durationTree;
+        cout << "B+ Tree is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
+        return resultsTree;
+    }
+    else {
+        double speedup = durationTree / durationHash;
+        cout << "Hash Table is " << fixed << setprecision(5) << speedup << "x FASTER" << endl;
+        return resultsHash;
+    }
+}
+
 template<typename K, typename V>
 MusicLibrary<K, V>::~MusicLibrary() {
     for (Song* songPtr : songsPtrs) {
