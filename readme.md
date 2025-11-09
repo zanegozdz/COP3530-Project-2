@@ -5,16 +5,16 @@ A B+ Tree and Hash Table–Powered Music Library Search Engine
 
 # Overview
 
-TuneTree is a high-performance music library search engine built in C++.
-It uses multiple B+ trees to index song attributes — allowing fast, flexible searches across thousands of tracks.
+TuneTree is a music library search engine.
+It uses multiple B+ trees and Hash Tables to index song attributes — allowing fast, flexible searches across thousands of tracks.
 
 Search by artist, genre, emotion, or perform range queries (e.g., find songs with popularity between 70–90).
-Perfect for exploring datasets and benchmarking indexing structures.
+Perfect for exploring datasets and benchmarking data structures.
 
 # How It Works
 
 ### Initialization: 
-- A MusicLibrary object is created and configured with B+ trees for each attribute.
+- A MusicLibrary object is created and configured with B+ trees and Hash Tables for each attribute.
 
 ### Data Loading
 - The program calls loadData() to import songs from a CSV file. 
@@ -30,12 +30,13 @@ Perfect for exploring datasets and benchmarking indexing structures.
 1. #### Filtered Search: Match specific attributes (e.g., Artist = “Drake”, Genre = “Hip-Hop”).
 
   - If there are no attributes matching the search the program will show 0 results
-  - The program also runs a benchmark testing which data structure runs quicker displaying various stats
+  - The program also runs a benchmark test which outputs the data structure that runs quicker, displaying various stats
 
 2. #### Range Search: Search between two values (e.g., Popularity 60–80).
 
-3. #### Exit: Quit the program gracefully.
+3. #### Exit: Quit the program.
 
+```text
 Example Run
 ==================================
 ==================================
@@ -52,7 +53,7 @@ Example Run
 2. Range Search
 3. Exit
    Pick an option: 1
-
+```
 
 Filtered Search Example
 ==================================
@@ -103,5 +104,55 @@ ARTIST               TITLE               EMOTION   GENRE       RELEASE TEMPO  EX
 Jason Derulo         Take You Dancing    joy       pop         2020    113    No       72           71      79
 ---------------------------------------------------------------------------------------------------------------
 1 results found
+```
+Range Search Example
+==================================
+
+```text
+========== RANGE SEARCH ==========
+(if the value is none, press enter)
+
+[1]Artist, [2]Title, [3]Emotion, [4]Genre, [5]Release Date, [6]Tempo, [7]Explicit, [8]Popularity, [9]Energy, [10]Danceab
+ility
+Pick an option:1
+
+Enter minimum value:Adam Snow
+
+Enter maximum value:Adara
+
+
+========= BENCHMARK TEST =========
+
+HASH TABLE:
+        Total time: 206508600 ns
+        Average time: 2065086 ns
+        Results found: 10
+
+B+ TREE:
+        Total time: 228600 ns
+        Average time: 2286 ns
+        Results found: 10
+
+B+ Tree is 903.00000x FASTER
+
+========= SEARCH RESULTS =========
+
+-----------------------------------------------------------------------------------------------------------------------
+ARTIST              TITLE               EMOTION   GENRE       RELEASE TEMPO  EXPLICIT POPULARITY   ENERGY  DANCEABILITY
+-----------------------------------------------------------------------------------------------------------------------
+Adam Snow           9 to 5              sadness   Unknown,U.. 2015    93     No       27           65      79
+Adam Snow           Pray For Me         sadness   Unknown,U.. 2024    175    No       55           89      46
+Adam Torres         Green Mountain Ro.. love      Unknown,U.. 2017    107    No       38           24      41
+Adam and the Ants   Prince Charming     joy       pop         2024    150    No       46           67      54
+Adam and the Ants   Antmusic            sadness   pop         2016    81     No       47           81      70
+Adamn Killa         Ten                 sadness   rap         2016    80     Yes      33           37      86
+Adamski             Killer              joy       electronic  1990    120    No       57           55      78
+Adamusic            DECADE OF POP | T.. joy       Unknown,U.. 2012    126    No       48           85      72
+Adana Twins         Strange             fear      deep hous.. 2012    120    No       46           66      86
+Adara               Dancing With a St.. sadness   Unknown,U.. 2020    103    No       79           52      74
+-----------------------------------------------------------------------------------------------------------------------
+
+10 results found
+```
 
 
