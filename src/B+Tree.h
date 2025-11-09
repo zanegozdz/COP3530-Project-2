@@ -221,7 +221,7 @@ private:
 
 
 public:
-    BPlusTree(int ord = 32) : order(ord) {
+    BPlusTree(int ord = 128) : order(ord) {
         root = new BPlusNode<K, V>(order, true);
     }
 
