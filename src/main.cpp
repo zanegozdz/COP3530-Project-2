@@ -168,7 +168,7 @@ int main() {
 			vector<Song*> results = lib.rangeSearchBenchmark(ch-1, maxVal, minVal);
 			printResults(results);
 		}
-		else if (option == 3) {
+		else if (opt == 3) {
 			return 1;
 		}
 		cout << "============== MENU ==============\n\n";
