@@ -102,6 +102,7 @@ int main() {
 	cout << "1. Filtered Search" << endl;
 	cout << "2. Range Search" << endl;
 	cout << "3. Exit" << endl;
+	cout << "Pick an option: ";
 	string option;
 	cin >> option;
 
@@ -147,8 +148,8 @@ int main() {
 		else if (opt == 2) {
 			cout << "\n========== RANGE SEARCH ==========\n";
 			cout << "(if the value is none, click enter)\n\n";
-			cout << "Pick an option:" << endl;
-			cout << "[1]Artist, [2]Title, [3]Emotion, [4]Genre, [5]Release Date, [6]Tempo, [7]Explicit, [8]Popularity, [9]Energy, [10]Danceability" << endl;
+			cout << "[1]Artist, [2]Title, [3]Emotion, [4]Genre, [5]Release Date, [6]Tempo, [8]Popularity, [9]Energy, [10]Danceability" << endl;
+			cout << "Pick an option: ";
 			string choice;
 			cin >> choice;
 			int ch = stoi(choice);
