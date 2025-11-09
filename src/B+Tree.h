@@ -137,22 +137,6 @@ private:
                     return;
                 }
             }
-
-            // // Check if go to next leaf
-            // leaf = leaf->next;
-            // if (leaf == nullptr || leaf->keys.empty()) {
-            //     break;
-            // }
-            //
-            // // If next leaf's smallest key is greater than target stop
-            // if (leaf->keys[0] > key) {
-            //     break;
-            // }
-            //
-            // // If next leaf's largest key is less than target too far
-            // if (leaf->keys.back() < key) {
-            //     break;
-            // }
         }
     }
 
