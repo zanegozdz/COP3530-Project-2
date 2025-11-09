@@ -1,44 +1,63 @@
 # 🎵 TuneTree
-
 A B+ Tree and Hash Table–Powered Music Library Search Engine
 
+---
 
-# Overview
+## Overview
+TuneTree is a music library search engine.  
+It uses multiple **B+ Trees** and **Hash Tables** to index song attributes — allowing fast, flexible searches across thousands of tracks.
 
-TuneTree is a music library search engine.
-It uses multiple B+ trees and Hash Tables to index song attributes — allowing fast, flexible searches across thousands of tracks.
-
-Search by artist, genre, emotion, or perform range queries (e.g., find songs with popularity between 70–90).
+Search by artist, genre, emotion, or perform range queries (e.g., find songs with popularity between 70–90).  
 Perfect for exploring datasets and benchmarking data structures.
 
-# How It Works
+---
 
-### Initialization: 
-- A MusicLibrary object is created and configured with B+ trees and Hash Tables for each attribute.
+## How It Works
+
+### Initialization
+- A `MusicLibrary` object is created and configured with B+ Trees and Hash Tables for each attribute.
 
 ### Data Loading
-- The program calls loadData() to import songs from a CSV file. 
-- Allow for the program to initialize the data structures and __WAIT__ for the menu to appear
-- It may take a moment for the data structures to load up
+- The program calls `loadData()` to import songs from a CSV file.
+- The program initializes the data structures and **waits** for the menu to appear.
+- It may take a moment for the data structures to finish loading.
 
+---
 
-# Menu System
-- **Options:** Filtered Search, Range Search, and Quit
+## Menu System
 
-    - Select a menu option using the description below
+### Options
+- **Filtered Search**
+- **Range Search**
+- **Quit**
 
-1. #### Filtered Search: Match specific attributes (e.g., Artist = “Drake”, Genre = “Hip-Hop”).
+Select a menu option using the descriptions below:
 
-  - If there are no attributes matching the search the program will show 0 results
-  - The program also runs a benchmark test which outputs the data structure that runs quicker, displaying various stats
+---
 
-2. #### Range Search: Search between two values (e.g., Popularity 60–80).
+### 1. Filtered Search
+Match specific attributes (e.g., Artist = “Drake”, Genre = “Hip-Hop”).
 
-3. #### Exit: Quit the program.
+- If no attributes match, the program will show **0 results**.
+- The program also runs a **benchmark test**, comparing the performance of the Hash Table and B+ Tree and displaying statistics.
+
+---
+
+### 2. Range Search
+Search between two values (e.g., Popularity 60–80).
+
+---
+
+### 3. Exit
+Quit the program.
+
+---
+
+## Example Run
 
 ```text
-Example Run
 ==================================
+             TuneTree
 ==================================
 
 1. Creating music library...
@@ -54,46 +73,34 @@ Example Run
 3. Exit
    Pick an option: 1
 ```
-
-Filtered Search Example
-==================================
-
+---
+## Filtered Search Example
 ```text
 ========= FILTERED SEARCH =========
 (if the value is none, press enter)
 
 Artist (Ex. Jason Derulo): Jason Derulo
-
 Title (Ex. Take You Dancing):
-
 Emotion (Ex. joy):
-
 Genre (Ex. pop): pop
-
 Release Date (Ex. 2020): 2020
-
 Tempo (Ex. 113):
-
 Explicit (Ex. No):
-
 Popularity (Ex. 72):
-
 Energy (Ex. 71):
-
 Danceability (Ex. 79):
-
 
 ========= BENCHMARK TEST =========
 
 HASH TABLE:
-    Total time: 6824400 ns
-    Average time: 6824400 ns
-    Results found: 2
+Total time: 6824400 ns
+Average time: 6824400 ns
+Results found: 2
 
 B+ TREE:
-    Total time: 4635700 ns
-    Average time: 4635700 ns
-    Results found: 2
+Total time: 4635700 ns
+Average time: 4635700 ns
+Results found: 2
 
 B+ Tree is 1.00000x FASTER
 
@@ -103,35 +110,32 @@ ARTIST               TITLE               EMOTION   GENRE       RELEASE TEMPO  EX
 ---------------------------------------------------------------------------------------------------------------
 Jason Derulo         Take You Dancing    joy       pop         2020    113    No       72           71      79
 ---------------------------------------------------------------------------------------------------------------
-1 results found
+1 result found
 ```
-Range Search Example
-==================================
-
+---
+## Range Search Example
 ```text
 ========== RANGE SEARCH ==========
 (if the value is none, press enter)
 
-[1]Artist, [2]Title, [3]Emotion, [4]Genre, [5]Release Date, [6]Tempo, [7]Explicit, [8]Popularity, [9]Energy, [10]Danceab
-ility
-Pick an option:1
+[1]Artist, [2]Title, [3]Emotion, [4]Genre, [5]Release Date,
+[6]Tempo, [7]Explicit, [8]Popularity, [9]Energy, [10]Danceability
+Pick an option: 1
 
-Enter minimum value:Adam Snow
-
-Enter maximum value:Adara
-
+Enter minimum value: Adam Snow
+Enter maximum value: Adara
 
 ========= BENCHMARK TEST =========
 
 HASH TABLE:
-        Total time: 206508600 ns
-        Average time: 2065086 ns
-        Results found: 10
+Total time: 206508600 ns
+Average time: 2065086 ns
+Results found: 10
 
 B+ TREE:
-        Total time: 228600 ns
-        Average time: 2286 ns
-        Results found: 10
+Total time: 228600 ns
+Average time: 2286 ns
+Results found: 10
 
 B+ Tree is 903.00000x FASTER
 
@@ -154,5 +158,3 @@ Adara               Dancing With a St.. sadness   Unknown,U.. 2020    103    No 
 
 10 results found
 ```
-
-
