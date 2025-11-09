@@ -22,7 +22,6 @@ include_directories(src)
 add_executable(Main
         src/main.cpp
         src/B+Tree.h
-        src/B+Tree.cpp
         src/Song.h
         src/Song.cpp # your main file
         src/MusicLibrary.cpp

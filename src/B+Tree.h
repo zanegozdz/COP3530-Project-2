@@ -35,7 +35,6 @@ public:
             }
         }
     }
-    //friend class BPlusTree<T>;
 };
 
 //B+ tree
@@ -44,23 +43,6 @@ class BPlusTree {
 private:
     BPlusNode<K, V>* root;
     int order;
-
-    //Private helper methods
-    //     void splitChild(BPlusNode<T>* parent, int index);
-    //     void insertNonFull(BPlusNode<T>* node, int key, T* value);
-    //     void searchNode(BPlusNode<T>* node, int key, vector<T*>& results);
-    //     BPlusNode<T>* findLeaf(BPlusNode<T>* node, int key);
-    //     void printTree(BPlusNode<T>* node, int level);
-    //
-    // public:
-    //     BPlusTree(int ord = 32);
-    //     ~BPlusTree();
-    //
-    //     //search
-    //     void insert(int key, T* value);
-    //     vector<T*> search(int key);
-    //     vector<T*> rangeSearch(int minKey, int maxKey);
-    //     void print();
 
     void splitChild(BPlusNode<K, V> *parent, int index) {
         BPlusNode<K, V> *node = parent->children[index];
